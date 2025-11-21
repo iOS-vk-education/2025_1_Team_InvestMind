@@ -5,7 +5,7 @@ import SwiftUI
 struct RegisterView: View {
     var onRegistered: () -> Void
     var onShowLogin: () -> Void
-
+    
     @State private var phone = ""
     @State private var password = ""
     @State private var confirmPassword = ""
@@ -15,11 +15,11 @@ struct RegisterView: View {
     @State private var showErrors: [String: Bool] = [:]
     @State private var isLoading = false
     @FocusState private var focusedField: Field?
-
+    
     enum Field {
         case phone, password, confirmPassword
     }
-
+    
     private var isFormValid: Bool {
         PhoneFormatter.isValid(phone) &&
         !password.isEmpty && password.count >= 6 &&
@@ -27,252 +27,275 @@ struct RegisterView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.black
-                    .ignoresSafeArea()
-                
+        ZStack {
+            Image("BackgroundOnboardImage")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            AppColors.backgroundPrimary.opacity(0.75)
+                .ignoresSafeArea()
+            
+            ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: AppSpacing.xl) {
-                        Spacer(minLength: 60)
-                        
-                        Text("Пройди регистрацию и начни свой путь инвестора!")
-                            .multilineTextAlignment(.center)
-                            .font(AppTypography.title(weight: .semibold))
+                        Text("InvestMind")
+                            .font(AppTypography.logo())
                             .foregroundStyle(.white)
-                            .padding(.horizontal, AppSpacing.lg)
-                        
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            // Поле номера телефона
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "phone.fill")
-                                    .foregroundStyle(Color.gray)
-                                    .frame(width: 20)
-                                
-                                TextField("Номер телефона", text: $phone)
-                                    .keyboardType(.phonePad)
-                                    .textContentType(.telephoneNumber)
-                                    .foregroundStyle(.black)
-                                    .focused($focusedField, equals: .phone)
-                                    .onChange(of: phone) { _, newValue in
-                                        phone = PhoneFormatter.format(newValue)
-
-                                        if errors["phone"] != nil {
-                                            withAnimation {
-                                                errors.removeValue(forKey: "phone")
-                                                showErrors["phone"] = false
-                                            }
+                            .padding(.top, AppSpacing.lg)
+                            .id("top")
+                    
+                    Text("Пройди регистрацию и начни свой путь инвестора!")
+                        .multilineTextAlignment(.center)
+                        .font(AppTypography.title(weight: .semibold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, AppSpacing.lg)
+                    
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        // Поле номера телефона
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "phone.fill")
+                                .foregroundStyle(Color.gray)
+                                .frame(width: 20)
+                            
+                            TextField("Номер телефона", text: $phone)
+                                .keyboardType(.phonePad)
+                                .textContentType(.telephoneNumber)
+                                .foregroundStyle(.black)
+                                .focused($focusedField, equals: .phone)
+                                .id("phone")
+                                .onChange(of: phone) { _, newValue in
+                                    phone = PhoneFormatter.format(newValue)
+                                    
+                                    if errors["phone"] != nil {
+                                        withAnimation {
+                                            errors.removeValue(forKey: "phone")
+                                            showErrors["phone"] = false
                                         }
                                     }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(errors["phone"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
-                            )
-                            
-                            if let phoneError = errors["phone"], showErrors["phone"] == true {
-                                Text(phoneError)
-                                    .font(AppTypography.caption())
-                                    .foregroundStyle(AppColors.danger)
-                                    .padding(.leading, AppSpacing.md)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .animation(.easeInOut(duration: 0.2), value: showErrors["phone"] == true)
-                            }
+                                }
                         }
-                        .padding(.horizontal, AppSpacing.lg)
+                        .padding()
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(errors["phone"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
+                        )
                         
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            // Поле пароля
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundStyle(Color.gray)
-                                    .frame(width: 20)
-                                
-                                Group {
-                                    if isPasswordVisible {
-                                        TextField("Пароль", text: $password)
-                                            .textContentType(.newPassword)
-                                    } else {
-                                        SecureField("Пароль", text: $password)
-                                            .textContentType(.newPassword)
-                                    }
-                                }
-                                .foregroundStyle(.black)
-                                .focused($focusedField, equals: .password)
-                                .onChange(of: password) { _, newPassword in
-                                    handlePasswordChange(newPassword)
-                                }
-                                
-                                Button(action: {
-                                    isPasswordVisible.toggle()
-                                }) {
-                                    Image(systemName: isPasswordVisible ? "eye.fill" : "eye.slash.fill")
-                                        .foregroundStyle(Color.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(errors["password"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
-                            )
-                            
-                            if let passwordError = errors["password"], showErrors["password"] == true {
-                                Text(passwordError)
-                                    .font(AppTypography.caption())
-                                    .foregroundStyle(AppColors.danger)
-                                    .padding(.leading, AppSpacing.md)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .animation(.easeInOut(duration: 0.2), value: showErrors["password"] == true)
-                            }
-                        }
-                        .padding(.horizontal, AppSpacing.lg)
-                        
-                        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            // Поле повторения пароля
-                            HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "lock.fill")
-                                    .foregroundStyle(Color.gray)
-                                    .frame(width: 20)
-                                
-                                Group {
-                                    if isConfirmPasswordVisible {
-                                        TextField("Повторите пароль", text: $confirmPassword)
-                                            .textContentType(.newPassword)
-                                    } else {
-                                        SecureField("Повторите пароль", text: $confirmPassword)
-                                            .textContentType(.newPassword)
-                                    }
-                                }
-                                .foregroundStyle(.black)
-                                .focused($focusedField, equals: .confirmPassword)
-                                .onChange(of: confirmPassword) { _, newConfirmPassword in
-                                    handleConfirmPasswordChange(newConfirmPassword)
-                                }
-                                
-                                Button(action: {
-                                    isConfirmPasswordVisible.toggle()
-                                }) {
-                                    Image(systemName: isConfirmPasswordVisible ? "eye.fill" : "eye.slash.fill")
-                                        .foregroundStyle(Color.gray)
-                                }
-                            }
-                            .padding()
-                            .background(Color.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(errors["confirmPassword"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
-                            )
-                            
-                            if let confirmPasswordError = errors["confirmPassword"], showErrors["confirmPassword"] == true {
-                                Text(confirmPasswordError)
-                                    .font(AppTypography.caption())
-                                    .foregroundStyle(AppColors.danger)
-                                    .padding(.leading, AppSpacing.md)
-                                    .transition(.move(edge: .top).combined(with: .opacity))
-                                    .animation(.easeInOut(duration: 0.2), value: showErrors["confirmPassword"] == true)
-                            }
-                        }
-                        .padding(.horizontal, AppSpacing.lg)
-                        
-                        // Кнопка Регистрация
-                        Button(action: handleSubmit) {
-                            Text("Зарегистрироваться")
-                                .font(AppTypography.headline())
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppSpacing.md)
-                                .background(AppColors.buttonPrimary)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        }
-                        .disabled(isLoading)
-                        .padding(.horizontal, AppSpacing.lg)
-                        
-                        // Разделитель
-                        HStack {
-                            Rectangle()
-                                .fill(Color.white.opacity(0.3))
-                                .frame(height: 1)
-                            
-                            Text("Войти")
+                        if let phoneError = errors["phone"], showErrors["phone"] == true {
+                            Text(phoneError)
                                 .font(AppTypography.caption())
-                                .foregroundStyle(Color.white.opacity(0.7))
-                                .padding(.horizontal, AppSpacing.sm)
-                            
-                            Rectangle()
-                                .fill(Color.white.opacity(0.3))
-                                .frame(height: 1)
+                                .foregroundStyle(AppColors.danger)
+                                .padding(.leading, AppSpacing.md)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.easeInOut(duration: 0.2), value: showErrors["phone"] == true)
                         }
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.vertical, AppSpacing.md)
-                        
-                        // Кнопки социальных сетей
-                        VStack(spacing: AppSpacing.md) {
-                            // VK
-                            Button(action: {}) {
-                                HStack(spacing: 8) {
-                                    Image("VK")
-                                        .font(.title3)
-                                    
-                                    Text("Продолжить с Вконтакте")
-                                        .font(AppTypography.body(weight: .medium))
-                                }
-                                .foregroundStyle(.black)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            }
-                            
-                            // Apple
-                            Button(action: {}) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "applelogo")
-                                        .font(.title3)
-                                    
-                                    Text("Продолжить с Apple")
-                                        .font(AppTypography.body(weight: .medium))
-                                }
-                                .foregroundStyle(.black)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            }
-                        }
-                        .padding(.horizontal, AppSpacing.lg)
-                        
-                        // Есть аккаунт? Войти
-                        Button(action: onShowLogin) {
-                            Text("Есть аккаунт? Войти")
-                                .font(AppTypography.body(weight: .medium))
-                                .foregroundStyle(.white)
-                        }
-                        .padding(.bottom, AppSpacing.xl)
-                        
-                        Spacer(minLength: 60)
                     }
-                    .padding(.vertical, AppSpacing.xl)
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        // Поле пароля
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "lock.fill")
+                                .foregroundStyle(Color.gray)
+                                .frame(width: 20)
+                            
+                            Group {
+                                if isPasswordVisible {
+                                    TextField("Пароль", text: $password)
+                                        .textContentType(.newPassword)
+                                } else {
+                                    SecureField("Пароль", text: $password)
+                                        .textContentType(.newPassword)
+                                }
+                            }
+                            .foregroundStyle(.black)
+                            .focused($focusedField, equals: .password)
+                            .id("password")
+                            .onChange(of: password) { _, newPassword in
+                                handlePasswordChange(newPassword)
+                            }
+                            
+                            Button(action: {
+                                isPasswordVisible.toggle()
+                            }) {
+                                Image(systemName: isPasswordVisible ? "eye.fill" : "eye.slash.fill")
+                                    .foregroundStyle(Color.gray)
+                            }
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(errors["password"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
+                        )
+                        
+                        if let passwordError = errors["password"], showErrors["password"] == true {
+                            Text(passwordError)
+                                .font(AppTypography.caption())
+                                .foregroundStyle(AppColors.danger)
+                                .padding(.leading, AppSpacing.md)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.easeInOut(duration: 0.2), value: showErrors["password"] == true)
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    VStack(alignment: .leading, spacing: AppSpacing.sm) {
+                        // Поле повторения пароля
+                        HStack(spacing: AppSpacing.sm) {
+                            Image(systemName: "lock.fill")
+                                .foregroundStyle(Color.gray)
+                                .frame(width: 20)
+                            
+                            Group {
+                                if isConfirmPasswordVisible {
+                                    TextField("Повторите пароль", text: $confirmPassword)
+                                        .textContentType(.newPassword)
+                                } else {
+                                    SecureField("Повторите пароль", text: $confirmPassword)
+                                        .textContentType(.newPassword)
+                                }
+                            }
+                            .foregroundStyle(.black)
+                            .focused($focusedField, equals: .confirmPassword)
+                            .id("confirmPassword")
+                            .onChange(of: confirmPassword) { _, newConfirmPassword in
+                                handleConfirmPasswordChange(newConfirmPassword)
+                            }
+                            
+                            Button(action: {
+                                isConfirmPasswordVisible.toggle()
+                            }) {
+                                Image(systemName: isConfirmPasswordVisible ? "eye.fill" : "eye.slash.fill")
+                                    .foregroundStyle(Color.gray)
+                            }
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(errors["confirmPassword"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
+                        )
+                        
+                        if let confirmPasswordError = errors["confirmPassword"], showErrors["confirmPassword"] == true {
+                            Text(confirmPasswordError)
+                                .font(AppTypography.caption())
+                                .foregroundStyle(AppColors.danger)
+                                .padding(.leading, AppSpacing.md)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .animation(.easeInOut(duration: 0.2), value: showErrors["confirmPassword"] == true)
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    // Кнопка Регистрация
+                    Button(action: handleSubmit) {
+                        Text("Зарегистрироваться")
+                            .font(AppTypography.headline())
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.md)
+                            .background(AppColors.buttonPrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .disabled(isLoading)
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    // Разделитель
+                    HStack {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(height: 1)
+                        
+                        Text("Войти")
+                            .font(AppTypography.caption())
+                            .foregroundStyle(Color.white.opacity(0.7))
+                            .padding(.horizontal, AppSpacing.sm)
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.3))
+                            .frame(height: 1)
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.vertical, AppSpacing.md)
+                    
+                    // Кнопки социальных сетей
+                    VStack(spacing: AppSpacing.md) {
+                        // VK
+                        Button(action: {}) {
+                            HStack(spacing: 8) {
+                                Image("VK")
+                                    .font(.title3)
+                                
+                                Text("Продолжить с Вконтакте")
+                                    .font(AppTypography.body(weight: .medium))
+                            }
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        
+                        // Apple
+                        Button(action: {}) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "applelogo")
+                                    .font(.title3)
+                                
+                                Text("Продолжить с Apple")
+                                    .font(AppTypography.body(weight: .medium))
+                            }
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                            .background(Color.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    
+                    // Есть аккаунт? Войти
+                    Button(action: onShowLogin) {
+                        Text("Есть аккаунт? Войти")
+                            .font(AppTypography.body(weight: .medium))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(.bottom, AppSpacing.xl)
+                    
+                    }
+                    .padding(.top, AppSpacing.md)
+                    .padding(.bottom, AppSpacing.xl)
+                    .safeAreaInset(edge: .bottom) {
+                        Color.clear
+                            .frame(height: focusedField != nil ? 20 : 0)
+                    }
                 }
                 .scrollDismissesKeyboard(.interactively)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("InvestMind")
-                        .font(AppTypography.logo())
-                        .foregroundStyle(.white)
+                .onChange(of: focusedField) { _, newField in
+                    if let field = newField {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                switch field {
+                                case .phone:
+                                    proxy.scrollTo("phone", anchor: .center)
+                                case .password:
+                                    proxy.scrollTo("password", anchor: .center)
+                                case .confirmPassword:
+                                    proxy.scrollTo("confirmPassword", anchor: .center)
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            .toolbarBackground(Color.black, for: .navigationBar)
         }
     }
-
+    
+    
     private func handlePasswordChange(_ newPassword: String) {
         if errors["password"] != nil {
             withAnimation {
@@ -320,7 +343,7 @@ struct RegisterView: View {
             }
         }
     }
-
+    
     private func handleSubmit() {
         errors.removeAll()
         showErrors = [:]
@@ -339,19 +362,19 @@ struct RegisterView: View {
             onRegistered()
         }
     }
-
+    
     private func validate() -> Bool {
         var result = true
         if !PhoneFormatter.isValid(phone) {
             errors["phone"] = "Введите корректный номер телефона"
             result = false
         }
-
+        
         if password.isEmpty || password.count < 6 {
             errors["password"] = "Минимум 6 символов"
             result = false
         }
-
+        
         if confirmPassword.isEmpty {
             errors["confirmPassword"] = "Повторите пароль"
             result = false
@@ -359,7 +382,8 @@ struct RegisterView: View {
             errors["confirmPassword"] = "Пароли не совпадают"
             result = false
         }
-
+        
         return result
     }
+    
 }
