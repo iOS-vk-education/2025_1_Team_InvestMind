@@ -58,6 +58,10 @@ InvestMind — это мобильное приложение для управ�
 
 [🔗 Ссылка на макет в Figma](https://www.figma.com/design/jMZW6TqtWdGHTCxC1iAYoI/%D0%9C%D0%B0%D0%BA%D0%B5%D1%82-IOS?node-id=396-5903&t=qnoGrqfy0wIRPTPI-0)
 
+### 📱 Борда с задачами:
+
+[🔗 Ссылка на борду](https://trello.com/invite/b/6920632ca7d6d9808f60e20a/ATTI8386bbc2ef2f3a42a70e9f9d30de0a92B7DF68B9/investmind)
+
 ## Статус разработки
 
 Приложение находится в стадии разработки UI. В настоящее время реализованы:
