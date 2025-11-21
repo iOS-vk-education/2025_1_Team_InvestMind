@@ -46,13 +46,13 @@ struct ContentView: View {
                             : .move(edge: .leading))
             case .auth:
                 AuthView(
-                    onAuthenticated: { flowStep = .postAuthGuide },
+                    onAuthenticated: { flowStep = .main },
                     onShowRegister: { flowStep = .register }
                 )
                 .transition(.move(edge: .trailing))
             case .register:
                 RegisterView(
-                    onRegistered: { flowStep = .postAuthGuide },
+                    onRegistered: { flowStep = .main },
                     onShowLogin: { flowStep = .auth }
                 )
                 .transition(.move(edge: .trailing))

@@ -24,16 +24,24 @@ struct AuthView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.black
-                       .ignoresSafeArea()
-                
+        ZStack {
+            Image("BackgroundOnboardImage")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            AppColors.backgroundPrimary.opacity(0.75)
+                .ignoresSafeArea()
+            
+            ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: AppSpacing.xl) {
-                        Spacer(minLength: 60)
-                        
-                        Text("Войди и продолжи свой путь инвестора!")
+                        Text("InvestMind")
+                            .font(AppTypography.logo())
+                            .foregroundStyle(.white)
+                            .padding(.top, AppSpacing.lg)
+                            .id("top")
+                    
+                    Text("Войди и продолжи свой путь инвестора!")
                             .multilineTextAlignment(.center)
                             .font(AppTypography.title(weight: .semibold))
                             .foregroundStyle(.white)
@@ -51,6 +59,7 @@ struct AuthView: View {
                                     .textContentType(.telephoneNumber)
                                     .foregroundStyle(.black)
                                     .focused($focusedField, equals: .login)
+                                    .id("login")
                                     .onChange(of: login) { _, newValue in
                                         login = PhoneFormatter.format(newValue)
 
@@ -100,6 +109,7 @@ struct AuthView: View {
                             }
                             .foregroundStyle(.black)
                             .focused($focusedField, equals: .password)
+                            .id("password")
                             .onChange(of: password) { _, _ in
                                 if errors["password"] != nil {
                                     withAnimation {
@@ -221,21 +231,25 @@ struct AuthView: View {
                     }
                     .padding(.bottom, AppSpacing.xl)
                     
-                    Spacer(minLength: 60)
+                    }
+                    .padding(.top, AppSpacing.md)
+                    .padding(.bottom, AppSpacing.xl)
+                    .safeAreaInset(edge: .bottom) {
+                        Color.clear
+                            .frame(height: focusedField != nil ? 20 : 0)
+                    }
                 }
-                .padding(.vertical, AppSpacing.xl)
-            }
-            .scrollDismissesKeyboard(.interactively)
-        }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("InvestMind")
-                        .font(AppTypography.logo())
-                        .foregroundStyle(.white)
+                .scrollDismissesKeyboard(.interactively)
+                .onChange(of: focusedField) { _, newField in
+                    if let field = newField {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                proxy.scrollTo(field == .login ? "login" : "password", anchor: .center)
+                            }
+                        }
+                    }
                 }
             }
-            .toolbarBackground(Color.black, for: .navigationBar)
         }
     }
 
