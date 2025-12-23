@@ -4,3 +4,4 @@
 *.xcworkspace/xcuserdata
 .build/
 DerivedData/
+InvestMind/keys.xcconfig
