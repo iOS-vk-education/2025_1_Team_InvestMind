@@ -1,9 +1,7 @@
-
-
 import SwiftUI
 
 struct DashboardView: View {
-    var assets: [Asset]
+    @StateObject private var viewModel = DashboardViewModel()
     var onOpenAsset: (Asset) -> Void
 
     var body: some View {
@@ -18,9 +16,21 @@ struct DashboardView: View {
                     .font(AppTypography.caption())
                     .foregroundStyle(AppColors.textSecondary)
 
+                if viewModel.isLoading {
+                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .foregroundStyle(AppColors.danger)
+                        .font(AppTypography.caption())
+                        .padding(.top, 8)
+                }
+
                 LazyVStack(spacing: 0) {
-                    ForEach(assets) { asset in
+                    ForEach(viewModel.assets) { asset in
                         MarketAssetRow(asset: asset)
+                            .contentShape(Rectangle())
                             .onTapGesture { onOpenAsset(asset) }
 
                         Divider()
@@ -31,8 +41,14 @@ struct DashboardView: View {
             }
             .padding()
         }
+        .refreshable {
+            viewModel.loadMarket()
+        }
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
+        .onAppear {
+            if viewModel.assets.isEmpty {
+                viewModel.loadMarket()
+            }
+        }
     }
 }
-
-

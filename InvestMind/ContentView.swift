@@ -63,7 +63,6 @@ struct ContentView: View {
                 .transition(.opacity)
             case .main:
                 MainTabView(
-                    assets: MockData.assets,
                     portfolios: MockData.userPortfolios
                 )
                 .transition(.move(edge: .bottom))

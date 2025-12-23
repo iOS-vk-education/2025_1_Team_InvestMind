@@ -2,18 +2,21 @@
 import SwiftUI
 
 struct MainTabView: View {
-    var assets: [Asset]
     var portfolios: [UserPortfolio]
 
     @State private var selectedTab = 0
     @State private var dashboardPath = NavigationPath()
     @State private var portfolioPath = NavigationPath()
+    @StateObject private var dashboardVM = DashboardViewModel()
 
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack(path: $dashboardPath) {
-                DashboardView(assets: assets) { asset in
+                DashboardView { asset in
                     dashboardPath.append(AppRoute.stockDetail(asset))
+                }
+                .onAppear {
+                    dashboardVM.loadMarket()
                 }
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {

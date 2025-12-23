@@ -8,13 +8,13 @@
 import Foundation
 
 enum APIConfig {
+    static let finnhubBaseURL = "https://finnhub.io/api/v1"
 
-    static let finnhubKey: String = {
-        guard let key = Bundle.main.object(
-            forInfoDictionaryKey: "FINNHUB_API_KEY"
-        ) as? String else {
-            fatalError("FINNHUB_API_KEY not found in Info.plist")
+    static var finnhubKey: String {
+        guard let key = Bundle.main.object(forInfoDictionaryKey: "FINNHUB_API_KEY") as? String else {
+            fatalError("FINNHUB_API_KEY not found")
         }
         return key
-    }()
+    }
 }
+

@@ -1,9 +1,14 @@
 
 
 import SwiftUI
+import Charts
 
 struct StockDetailView: View {
-    let asset: Asset
+    @StateObject private var viewModel: StockDetailViewModel
+
+    init(asset: Asset) {
+        _viewModel = StateObject(wrappedValue: StockDetailViewModel(asset: asset))
+    }
 
     var body: some View {
         ScrollView {
@@ -13,28 +18,47 @@ struct StockDetailView: View {
                 actions
             }
             .padding()
+            if viewModel.isLoading {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
+        }
+        .refreshable {
+            viewModel.load()
         }
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
+        .onAppear {
+            viewModel.load()
+        }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(asset.name)
+                    Text(viewModel.asset.name)
                         .font(AppTypography.headline(weight: .bold))
                         .foregroundStyle(AppColors.textPrimary)
-                    Text(asset.ticker)
+                    Text(viewModel.asset.ticker)
                         .font(AppTypography.caption())
                         .foregroundStyle(AppColors.textSecondary)
                 }
                 Spacer()
-                AssetChangeBadge(trend: asset.change)
+                if let percent = viewModel.dayChangePercent {
+                    AssetChangeBadge(
+                        trend: percent >= 0
+                            ? .up(percent)
+                            : .down(abs(percent))
+                    )
+                }
             }
 
-            Text(String(format: "$%.2f", asset.price))
-                .font(AppTypography.largeTitle(weight: .bold))
-                .foregroundStyle(AppColors.textPrimary)
+            if let price = viewModel.price {
+                Text(String(format: "$%.2f", price))
+                    .font(AppTypography.largeTitle(weight: .bold))
+                    .foregroundStyle(AppColors.textPrimary)
+            } else {
+                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
         }
     }
 
@@ -44,21 +68,67 @@ struct StockDetailView: View {
                 .font(AppTypography.headline(weight: .bold))
                 .foregroundStyle(AppColors.textPrimary)
 
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(AppColors.backgroundSecondary)
-                .frame(height: 220)
-                .overlay(
-                    WaveformChart()
-                        .stroke(AppColors.accentPrimary, lineWidth: 3)
-                        .padding()
+            Chart {
+                ForEach(Array(viewModel.chartPrices.enumerated()), id: \.offset) { index, price in
+                    LineMark(
+                        x: .value("Index", index),
+                        y: .value("Price", price)
+                    )
+                    .interpolationMethod(.catmullRom)
+                    .foregroundStyle(AppColors.accentPrimary)
+                }
+            }
+            .chartXAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                        .foregroundStyle(AppColors.border)
+
+                    AxisValueLabel()
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .chartYAxis {
+                AxisMarks { _ in
+                    AxisGridLine()
+                        .foregroundStyle(AppColors.border)
+
+                    AxisValueLabel()
+                        .foregroundStyle(AppColors.textSecondary)
+                }
+            }
+            .frame(height: 220)
+            .padding()
+            .background(AppColors.backgroundSecondary)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            
+            Picker("Period", selection: $viewModel.selectedPeriod) {
+                ForEach(ChartPeriod.allCases) { period in
+                    Text(period.rawValue).tag(period)
+                }
+            }
+            .pickerStyle(.segmented)
+            .tint(AppColors.accentPrimary)
+            .environment(\.colorScheme, .dark)
+            .onChange(of: viewModel.selectedPeriod) { _, _ in
+                viewModel.loadChartPrices()
+            }
+
+            HStack(spacing: AppSpacing.md) {
+                StatChangeBadge(
+                    title: "1D",
+                    value: viewModel.dayChangeValue,
+                    percent: viewModel.dayChangePercent
                 )
 
-            HStack {
-                StatBadge(title: "1D", value: "+1.2%", trend: .up(1.2))
-                StatBadge(title: "1M", value: "+12%", trend: .up(12))
+                StatChangeBadge(
+                    title: "1Y",
+                    value: viewModel.yearChangeValue,
+                    percent: viewModel.yearChangePercent
+                )
             }
         }
     }
+
 
     private var actions: some View {
         VStack(spacing: AppSpacing.md) {
@@ -95,24 +165,6 @@ struct StockDetailView: View {
         }
     }
 
-}
-
-struct WaveformChart: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let amplitude = rect.height / 4
-        let midY = rect.midY
-        let step = rect.width / 6
-
-        path.move(to: CGPoint(x: 0, y: midY))
-        for index in 0...6 {
-            let x = CGFloat(index) * step
-            let angle = CGFloat(index) * .pi / 2
-            let y = midY - sin(angle) * amplitude
-            path.addLine(to: CGPoint(x: x, y: y))
-        }
-        return path
-    }
 }
 
 
