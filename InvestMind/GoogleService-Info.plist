@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCT7W-P-JdXXoc5n9ipu53sDcFZNM9NfAM</string>
+	<key>GCM_SENDER_ID</key>
+	<string>303508322524</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>bbbtp.com.InvestMind</string>
+	<key>PROJECT_ID</key>
+	<string>investmind-28ffe</string>
+	<key>STORAGE_BUCKET</key>
+	<string>investmind-28ffe.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:303508322524:ios:edb291a013ec00b9b29c19</string>
+</dict>
+</plist>

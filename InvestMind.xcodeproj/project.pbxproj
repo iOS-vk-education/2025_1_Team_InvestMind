@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D262EFAB9170009792E /* FirebaseAuth */; };
+		DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D282EFAB9170009792E /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		43155BDA2ECDEABB0084E0AF /* InvestMind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InvestMind.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +41,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */,
+				DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +85,8 @@
 			);
 			name = InvestMind;
 			packageProductDependencies = (
+				DB808D262EFAB9170009792E /* FirebaseAuth */,
+				DB808D282EFAB9170009792E /* FirebaseCore */,
 			);
 			productName = InvestMind;
 			productReference = 43155BDA2ECDEABB0084E0AF /* InvestMind.app */;
@@ -110,6 +119,9 @@
 			);
 			mainGroup = 43155BD12ECDEABB0084E0AF;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 43155BDB2ECDEABB0084E0AF /* Products */;
 			projectDirPath = "";
@@ -360,6 +372,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DB808D262EFAB9170009792E /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		DB808D282EFAB9170009792E /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 43155BD22ECDEABB0084E0AF /* Project object */;
 }

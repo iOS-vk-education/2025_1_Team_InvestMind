@@ -6,21 +6,27 @@ struct AuthView: View {
     var onAuthenticated: () -> Void
     var onShowRegister: () -> Void
 
-    @State private var login = ""
+    @EnvironmentObject var authService: AuthService
+    @State private var email = ""
     @State private var password = ""
     @State private var isPasswordVisible = false
     @State private var errors: [String: String] = [:]
     @State private var showErrors: [String: Bool] = [:]
-    @State private var isLoading = false
     @FocusState private var focusedField: Field?
 
     enum Field {
-        case login, password
+        case email, password
     }
 
     private var isFormValid: Bool {
-        PhoneFormatter.isValid(login) &&
+        isValidEmail(email) &&
         !password.isEmpty && password.count >= 6
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
     }
     
     var body: some View {
@@ -48,25 +54,25 @@ struct AuthView: View {
                             .padding(.horizontal, AppSpacing.lg)
                         
                         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                            // Поле логина
+                            // Поле email
                             HStack(spacing: AppSpacing.sm) {
-                                Image(systemName: "phone.fill")
+                                Image(systemName: "envelope.fill")
                                     .foregroundStyle(Color.gray)
                                     .frame(width: 20)
                                 
-                                TextField("Номер телефона", text: $login)
-                                    .keyboardType(.phonePad)
-                                    .textContentType(.telephoneNumber)
+                                TextField("Email", text: $email)
+                                    .keyboardType(.emailAddress)
+                                    .textContentType(.emailAddress)
+                                    .autocapitalization(.none)
+                                    .autocorrectionDisabled()
                                     .foregroundStyle(.black)
-                                    .focused($focusedField, equals: .login)
-                                    .id("login")
-                                    .onChange(of: login) { _, newValue in
-                                        login = PhoneFormatter.format(newValue)
-
-                                        if errors["login"] != nil {
+                                    .focused($focusedField, equals: .email)
+                                    .id("email")
+                                    .onChange(of: email) { _, newValue in
+                                        if errors["email"] != nil {
                                             withAnimation {
-                                                errors.removeValue(forKey: "login")
-                                                showErrors["login"] = false
+                                                errors.removeValue(forKey: "email")
+                                                showErrors["email"] = false
                                             }
                                         }
                                     }
@@ -76,16 +82,16 @@ struct AuthView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(errors["login"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
+                                    .stroke(errors["email"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
                             )
                             
-                            if let loginError = errors["login"], showErrors["login"] == true {
-                                Text(loginError)
+                            if let emailError = errors["email"], showErrors["email"] == true {
+                                Text(emailError)
                                     .font(AppTypography.caption())
                                     .foregroundStyle(AppColors.danger)
                                     .padding(.leading, AppSpacing.md)
                                     .transition(.move(edge: .top).combined(with: .opacity))
-                                    .animation(.easeInOut(duration: 0.2), value: showErrors["login"] == true)
+                                    .animation(.easeInOut(duration: 0.2), value: showErrors["email"] == true)
                             }
 
                         }
@@ -147,7 +153,9 @@ struct AuthView: View {
                     .padding(.horizontal, AppSpacing.lg)
                     
                     // Забыли пароль
-                    Button(action: {}) {
+                    Button(action: {
+                        handleForgotPassword()
+                    }) {
                         Text("Забыли пароль?")
                             .font(AppTypography.body(weight: .medium))
                             .foregroundStyle(.white)
@@ -164,7 +172,7 @@ struct AuthView: View {
                                 .background(AppColors.buttonPrimary)
                                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         }
-                        .disabled(isLoading)
+                        .disabled(authService.isLoading)
                         .padding(.horizontal, AppSpacing.lg)
 
                     
@@ -244,7 +252,7 @@ struct AuthView: View {
                     if let field = newField {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             withAnimation(.easeInOut(duration: 0.3)) {
-                                proxy.scrollTo(field == .login ? "login" : "password", anchor: .center)
+                                proxy.scrollTo(field == .email ? "email" : "password", anchor: .center)
                             }
                         }
                     }
@@ -265,17 +273,42 @@ struct AuthView: View {
             }
             return
         }
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            isLoading = false
-            onAuthenticated()
+        
+        Task {
+            do {
+                try await authService.signIn(email: email, password: password)
+                
+                // Успешный вход
+                await MainActor.run {
+                    onAuthenticated()
+                }
+            } catch {
+                await MainActor.run {
+                    // Показываем ошибку
+                    if let errorMessage = authService.errorMessage {
+                        errors["email"] = errorMessage
+                        showErrors["email"] = true
+                    } else {
+                        errors["email"] = "Ошибка входа. Проверьте данные."
+                        showErrors["email"] = true
+                    }
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        for key in errors.keys {
+                            showErrors[key] = true
+                        }
+                    }
+                }
+            }
         }
     }
 
     private func validate() -> Bool {
         var result = true
-        if !PhoneFormatter.isValid(login) {
-            errors["login"] = "Введите корректный номер телефона"
+        if email.isEmpty {
+            errors["email"] = "Введите email"
+            result = false
+        } else if !isValidEmail(email) {
+            errors["email"] = "Введите корректный email"
             result = false
         }
         if password.isEmpty || password.count < 6 {
@@ -284,6 +317,28 @@ struct AuthView: View {
         }
 
         return result
+    }
+    
+    private func handleForgotPassword() {
+        guard !email.isEmpty && isValidEmail(email) else {
+            errors["email"] = "Введите корректный email"
+            showErrors["email"] = true
+            return
+        }
+        
+        Task {
+            do {
+                try await authService.resetPassword(email: email)
+                // Показываем сообщение об успехе (можно добавить alert)
+            } catch {
+                await MainActor.run {
+                    if let errorMessage = authService.errorMessage {
+                        errors["email"] = errorMessage
+                        showErrors["email"] = true
+                    }
+                }
+            }
+        }
     }
 }
 
