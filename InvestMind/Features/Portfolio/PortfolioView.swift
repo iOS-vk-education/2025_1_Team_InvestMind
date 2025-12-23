@@ -2,30 +2,45 @@
 import SwiftUI
 
 struct PortfolioView: View {
-    let portfolio: UserPortfolio
+    @EnvironmentObject var portfolioStore: PortfolioStore
+    let portfolioId: UUID
     var onOpenAsset: (Asset) -> Void
 
+    private var portfolio: UserPortfolio? {
+        portfolioStore.portfolios.first(where: { $0.id == portfolioId })
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                header
-                assetList
-            }
-            .padding()
-        }
-        .background(AppColors.backgroundPrimary.ignoresSafeArea())
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(AppColors.backgroundPrimary, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(portfolio.name)
-                    .font(AppTypography.headline(weight: .bold))
-                    .foregroundStyle(AppColors.textPrimary)
+        Group {
+            if let portfolio {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                        header(portfolio)
+                        assetList(portfolio)
+                    }
+                    .padding()
+                }
+                .background(AppColors.backgroundPrimary.ignoresSafeArea())
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbarBackground(AppColors.backgroundPrimary, for: .navigationBar)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        Text(portfolio.name)
+                            .font(AppTypography.headline(weight: .bold))
+                            .foregroundStyle(AppColors.textPrimary)
+                    }
+                }
+            } else {
+                Text("Портфель не найден")
+                    .font(AppTypography.caption())
+                    .foregroundStyle(AppColors.textSecondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(AppColors.backgroundPrimary.ignoresSafeArea())
             }
         }
     }
 
-    private var header: some View {
+    private func header(_ portfolio: UserPortfolio) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text("Стоимость портфеля")
                 .font(AppTypography.caption())
@@ -48,7 +63,7 @@ struct PortfolioView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
     }
 
-    private var assetList: some View {
+    private func assetList(_ portfolio: UserPortfolio) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             Text("Активы")
                 .font(AppTypography.headline(weight: .bold))

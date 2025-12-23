@@ -46,7 +46,7 @@ struct PortfolioSummary : Hashable {
 }
 
 struct UserPortfolio: Identifiable, Hashable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let summary: PortfolioSummary
     let assets: [PortfolioAsset]
@@ -68,7 +68,7 @@ struct OnboardingPage: Identifiable {
 
 enum AppRoute: Hashable {
     case stockDetail(Asset)
-    case portfolioDetail(UserPortfolio)
+    case portfolioDetail(UUID)
 }
 
 enum FlowStep {
@@ -119,11 +119,13 @@ enum MockData {
     
     static let userPortfolios: [UserPortfolio] = [
             UserPortfolio(
+                id: UUID(),
                 name: "Основной портфель",
                 summary: portfolioSummary,
                 assets: portfolioAssets
             ),
             UserPortfolio(
+                id: UUID(),
                 name: "Технологии",
                 summary: PortfolioSummary(
                     totalValue: 5500,

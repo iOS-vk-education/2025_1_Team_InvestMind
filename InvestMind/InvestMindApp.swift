@@ -11,6 +11,7 @@ import FirebaseCore
 @main
 struct InvestMindApp: App {
     @StateObject private var authService = AuthService()
+    @StateObject private var portfolioStore = PortfolioStore()
     
     init() {
         // Инициализация Firebase
@@ -21,6 +22,7 @@ struct InvestMindApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(authService)
+                .environmentObject(portfolioStore)
         }
     }
 }

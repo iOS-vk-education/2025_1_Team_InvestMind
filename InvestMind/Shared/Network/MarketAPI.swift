@@ -91,5 +91,30 @@ final class MarketAPI {
             else { completion(.success(results)) }
         }
     }
+
+    func searchSymbols(
+        query: String,
+        completion: @escaping (Result<SymbolSearchResponse, Error>) -> Void
+    ) {
+        let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
+        let urlString = "\(baseURL)/search?q=\(encoded)&token=\(apiKey)"
+        guard let url = URL(string: urlString) else { return }
+
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let error = error { completion(.failure(error)); return }
+            guard let data = data else { return }
+
+            do {
+                let response = try JSONDecoder().decode(SymbolSearchResponse.self, from: data)
+                DispatchQueue.main.async {
+                    completion(.success(response))
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }.resume()
+    }
 }
 

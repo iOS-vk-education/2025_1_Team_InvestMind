@@ -43,7 +43,7 @@ struct SurveyView: View {
                             .foregroundStyle(.white)
                             .padding(14)
                     }
-                     .glassEffect(in: .circle)
+                    
                     
                     Spacer()
 

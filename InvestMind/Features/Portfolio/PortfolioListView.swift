@@ -10,6 +10,7 @@ import SwiftUI
 struct PortfolioListView: View {
     let portfolios: [UserPortfolio]
     var onOpenPortfolio: (UserPortfolio) -> Void
+    var onAddPortfolio: () -> Void = {}
 
     var body: some View {
         ScrollView {
@@ -57,5 +58,12 @@ struct PortfolioListView: View {
             .padding()
         }
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: onAddPortfolio) {
+                    Image(systemName: "plus")
+                }
+            }
+        }
     }
 }
