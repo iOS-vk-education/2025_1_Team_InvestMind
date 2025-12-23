@@ -6,6 +6,9 @@ import Charts
 struct StockDetailView: View {
     @StateObject private var viewModel: StockDetailViewModel
 
+    @State private var isBuyPresented = false
+    @State private var isSellPresented = false
+
     init(asset: Asset) {
         _viewModel = StateObject(wrappedValue: StockDetailViewModel(asset: asset))
     }
@@ -29,6 +32,16 @@ struct StockDetailView: View {
         .onAppear {
             viewModel.load()
         }
+        .sheet(isPresented: $isBuyPresented) {
+            BuyStockView(asset: viewModel.asset, pricePerShare: currentPrice)
+        }
+        .sheet(isPresented: $isSellPresented) {
+            SellStockView(asset: viewModel.asset, pricePerShare: currentPrice)
+        }
+    }
+
+    private var currentPrice: Double {
+        viewModel.price ?? viewModel.asset.price
     }
 
     private var header: some View {
@@ -134,7 +147,7 @@ struct StockDetailView: View {
         VStack(spacing: AppSpacing.md) {
 
             // Купить
-            Button(action: {}) {
+            Button(action: { isBuyPresented = true }) {
                 HStack {
                     Image(systemName: "cart.fill.badge.plus")
                         .font(.headline)
@@ -149,7 +162,7 @@ struct StockDetailView: View {
             }
 
             // Продать
-            Button(action: {}) {
+            Button(action: { isSellPresented = true }) {
                 HStack {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.headline)

@@ -8,6 +8,7 @@
 import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var portfolioStore: PortfolioStore
     @State private var flowStep: FlowStep = .splash
     @State private var isGoingForward = true
 
@@ -68,17 +69,23 @@ struct ContentView: View {
                 }
                 .transition(.opacity)
             case .main:
-                MainTabView(
-                    portfolios: MockData.userPortfolios
-                )
+                MainTabView()
                 .transition(.move(edge: .bottom))
             }
         }
         .animation(.easeInOut, value: flowStep)
+        .onChange(of: authService.isAuthenticated) { _, isAuthenticated in
+            if !isAuthenticated {
+                if flowStep == .main {
+                    flowStep = .auth
+                }
+            }
+        }
     }
 }
 
 #Preview {
     ContentView()
         .environmentObject(AuthService())
+        .environmentObject(PortfolioStore())
 }

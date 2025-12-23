@@ -2,12 +2,14 @@
 import SwiftUI
 
 struct MainTabView: View {
-    var portfolios: [UserPortfolio]
+    @EnvironmentObject var portfolioStore: PortfolioStore
 
     @State private var selectedTab = 0
     @State private var dashboardPath = NavigationPath()
     @State private var portfolioPath = NavigationPath()
     @StateObject private var dashboardVM = DashboardViewModel()
+
+    @State private var isAddPortfolioPresented = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -33,13 +35,15 @@ struct MainTabView: View {
             .tag(0)
 
             NavigationStack(path: $portfolioPath) {
-                PortfolioListView(portfolios: portfolios) { selectedPortfolio in
-                    portfolioPath.append(AppRoute.portfolioDetail(selectedPortfolio))
+                PortfolioListView(portfolios: portfolioStore.portfolios) { selectedPortfolio in
+                    portfolioPath.append(AppRoute.portfolioDetail(selectedPortfolio.id))
+                } onAddPortfolio: {
+                    isAddPortfolioPresented = true
                 }
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
-                    case .portfolioDetail(let portfolio):
-                        PortfolioView(portfolio: portfolio) { asset in
+                    case .portfolioDetail(let portfolioId):
+                        PortfolioView(portfolioId: portfolioId) { asset in
                             portfolioPath.append(AppRoute.stockDetail(asset))
                         }
 
@@ -48,6 +52,9 @@ struct MainTabView: View {
 
                     }
                 }
+            }
+            .sheet(isPresented: $isAddPortfolioPresented) {
+                AddPortfolioView()
             }
             .tabItem {
                 Label("Портфели", systemImage: "briefcase.fill")
