@@ -6,24 +6,30 @@ struct RegisterView: View {
     var onRegistered: () -> Void
     var onShowLogin: () -> Void
     
-    @State private var phone = ""
+    @EnvironmentObject var authService: AuthService
+    @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var isPasswordVisible = false
     @State private var isConfirmPasswordVisible = false
     @State private var errors: [String: String] = [:]
     @State private var showErrors: [String: Bool] = [:]
-    @State private var isLoading = false
     @FocusState private var focusedField: Field?
     
     enum Field {
-        case phone, password, confirmPassword
+        case email, password, confirmPassword
     }
     
     private var isFormValid: Bool {
-        PhoneFormatter.isValid(phone) &&
+        isValidEmail(email) &&
         !password.isEmpty && password.count >= 6 &&
         !confirmPassword.isEmpty && password == confirmPassword
+    }
+    
+    private func isValidEmail(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
     }
     
     var body: some View {
@@ -51,25 +57,25 @@ struct RegisterView: View {
                         .padding(.horizontal, AppSpacing.lg)
                     
                     VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                        // Поле номера телефона
+                        // Поле email
                         HStack(spacing: AppSpacing.sm) {
-                            Image(systemName: "phone.fill")
+                            Image(systemName: "envelope.fill")
                                 .foregroundStyle(Color.gray)
                                 .frame(width: 20)
                             
-                            TextField("Номер телефона", text: $phone)
-                                .keyboardType(.phonePad)
-                                .textContentType(.telephoneNumber)
+                            TextField("Email", text: $email)
+                                .keyboardType(.emailAddress)
+                                .textContentType(.emailAddress)
+                                .autocapitalization(.none)
+                                .autocorrectionDisabled()
                                 .foregroundStyle(.black)
-                                .focused($focusedField, equals: .phone)
-                                .id("phone")
-                                .onChange(of: phone) { _, newValue in
-                                    phone = PhoneFormatter.format(newValue)
-                                    
-                                    if errors["phone"] != nil {
+                                .focused($focusedField, equals: .email)
+                                .id("email")
+                                .onChange(of: email) { _, newValue in
+                                    if errors["email"] != nil {
                                         withAnimation {
-                                            errors.removeValue(forKey: "phone")
-                                            showErrors["phone"] = false
+                                            errors.removeValue(forKey: "email")
+                                            showErrors["email"] = false
                                         }
                                     }
                                 }
@@ -79,16 +85,16 @@ struct RegisterView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(errors["phone"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
+                                .stroke(errors["email"] != nil ? AppColors.danger : Color.clear, lineWidth: 1)
                         )
                         
-                        if let phoneError = errors["phone"], showErrors["phone"] == true {
-                            Text(phoneError)
+                        if let emailError = errors["email"], showErrors["email"] == true {
+                            Text(emailError)
                                 .font(AppTypography.caption())
                                 .foregroundStyle(AppColors.danger)
                                 .padding(.leading, AppSpacing.md)
                                 .transition(.move(edge: .top).combined(with: .opacity))
-                                .animation(.easeInOut(duration: 0.2), value: showErrors["phone"] == true)
+                                .animation(.easeInOut(duration: 0.2), value: showErrors["email"] == true)
                         }
                     }
                     .padding(.horizontal, AppSpacing.lg)
@@ -201,7 +207,7 @@ struct RegisterView: View {
                             .background(AppColors.buttonPrimary)
                             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
-                    .disabled(isLoading)
+                    .disabled(authService.isLoading)
                     .padding(.horizontal, AppSpacing.lg)
                     
                     // Разделитель
@@ -280,8 +286,8 @@ struct RegisterView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 switch field {
-                                case .phone:
-                                    proxy.scrollTo("phone", anchor: .center)
+                                case .email:
+                                    proxy.scrollTo("email", anchor: .center)
                                 case .password:
                                     proxy.scrollTo("password", anchor: .center)
                                 case .confirmPassword:
@@ -356,17 +362,47 @@ struct RegisterView: View {
             }
             return
         }
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            isLoading = false
-            onRegistered()
+        
+        Task {
+            do {
+                try await authService.signUp(email: email, password: password)
+                
+                // Успешная регистрация
+                await MainActor.run {
+                    onRegistered()
+                }
+            } catch {
+                await MainActor.run {
+                    // Показываем ошибку
+                    if let errorMessage = authService.errorMessage {
+                        if errorMessage.contains("уже используется") {
+                            errors["email"] = "Этот email уже зарегистрирован"
+                            showErrors["email"] = true
+                        } else {
+                            errors["email"] = errorMessage
+                            showErrors["email"] = true
+                        }
+                    } else {
+                        errors["email"] = "Ошибка регистрации. Попробуйте позже."
+                        showErrors["email"] = true
+                    }
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        for key in errors.keys {
+                            showErrors[key] = true
+                        }
+                    }
+                }
+            }
         }
     }
     
     private func validate() -> Bool {
         var result = true
-        if !PhoneFormatter.isValid(phone) {
-            errors["phone"] = "Введите корректный номер телефона"
+        if email.isEmpty {
+            errors["email"] = "Введите email"
+            result = false
+        } else if !isValidEmail(email) {
+            errors["email"] = "Введите корректный email"
             result = false
         }
         

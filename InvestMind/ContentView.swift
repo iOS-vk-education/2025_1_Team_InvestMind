@@ -7,6 +7,7 @@
 
 import SwiftUI
 struct ContentView: View {
+    @EnvironmentObject var authService: AuthService
     @State private var flowStep: FlowStep = .splash
     @State private var isGoingForward = true
 
@@ -18,7 +19,12 @@ struct ContentView: View {
             switch flowStep {
             case .splash:
                 SplashView {
-                    flowStep = .onboarding
+                    // Проверяем состояние авторизации
+                    if authService.isAuthenticated {
+                        flowStep = .main
+                    } else {
+                        flowStep = .onboarding
+                    }
                 }
                 .transition(.opacity)
             case .onboarding:
@@ -74,4 +80,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AuthService())
 }
