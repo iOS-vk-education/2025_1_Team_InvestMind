@@ -8,6 +8,10 @@ struct DashboardView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
 
+                if viewModel.isLoading {
+                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
+                
                 Text("Рынок")
                     .font(AppTypography.largeTitle(weight: .bold))
                     .foregroundStyle(AppColors.textPrimary)
@@ -15,10 +19,6 @@ struct DashboardView: View {
                 Text("Активы для покупки")
                     .font(AppTypography.caption())
                     .foregroundStyle(AppColors.textSecondary)
-
-                if viewModel.isLoading {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                }
 
                 if let error = viewModel.errorMessage {
                     Text(error)

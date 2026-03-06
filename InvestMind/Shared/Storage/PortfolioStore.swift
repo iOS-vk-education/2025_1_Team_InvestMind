@@ -13,7 +13,7 @@ final class PortfolioStore: ObservableObject {
         if let loaded = storage.load() {
             self.persisted = loaded
         } else {
-            self.persisted = PersistedPortfolios.seededFromMockData()
+            self.persisted = PersistedPortfolios(portfolios: [])
             storage.save(persisted: self.persisted)
         }
 

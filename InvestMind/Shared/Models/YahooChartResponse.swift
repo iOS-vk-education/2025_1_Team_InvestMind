@@ -12,11 +12,27 @@ struct YahooChartResponse: Decodable {
 }
 
 struct YahooChart: Decodable {
-    let result: [YahooChartResult]
+    let result: [YahooChartResult]?
+    let error: YahooChartError?
+}
+
+struct YahooChartError: Decodable {
+    let code: String?
+    let description: String?
 }
 
 struct YahooChartResult: Decodable {
+    let meta: YahooMeta
+    let timestamp: [TimeInterval]?
     let indicators: YahooIndicators
+}
+
+struct YahooMeta: Decodable {
+    let regularMarketPrice: Double
+    let chartPreviousClose: Double
+    let regularMarketDayHigh: Double?
+    let regularMarketDayLow: Double?
+    let regularMarketTime: TimeInterval?
 }
 
 struct YahooIndicators: Decodable {
@@ -24,5 +40,8 @@ struct YahooIndicators: Decodable {
 }
 
 struct YahooQuote: Decodable {
+    let open: [Double?]?
+    let high: [Double?]?
+    let low: [Double?]?
     let close: [Double?]
 }
