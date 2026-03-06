@@ -70,7 +70,7 @@ final class StockDetailViewModel: ObservableObject {
     // 1D (Finnhub Quote)
 
     private func loadQuote() {
-        MarketAPI.shared.fetchQuote(symbol: asset.ticker) { [weak self] result in
+        ChartAPI.shared.getQuote(symbol: asset.ticker) { [weak self] result in
             guard let self else { return }
 
             Task { @MainActor in

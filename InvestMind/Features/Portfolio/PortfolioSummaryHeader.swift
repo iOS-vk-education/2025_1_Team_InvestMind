@@ -21,13 +21,15 @@ struct PortfolioSummaryHeader: View {
                 .font(AppTypography.largeTitle(weight: .bold))
                 .foregroundStyle(AppColors.textPrimary)
 
-            HStack(spacing: AppSpacing.md) {
-                AssetChangeBadge(trend: .up(summary.dailyChange))
-
-                Text("Инвестировано: \(Int(summary.invested))$")
-                    .font(AppTypography.caption())
-                    .foregroundStyle(AppColors.textSecondary)
-            }
+            Text("Инвестировано: \(Int(summary.invested))$")
+                .font(AppTypography.caption())
+                .foregroundStyle(AppColors.textSecondary)
+            
+            AssetChangeBadge(
+                trend: summary.totalReturnPercent >= 0
+                    ? .up(summary.totalReturnPercent)
+                    : .down(abs(summary.totalReturnPercent))
+            )
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

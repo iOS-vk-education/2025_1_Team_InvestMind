@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 struct MainTabView: View {
@@ -35,10 +34,25 @@ struct MainTabView: View {
             .tag(0)
 
             NavigationStack(path: $portfolioPath) {
-                PortfolioListView(portfolios: portfolioStore.portfolios) { selectedPortfolio in
-                    portfolioPath.append(AppRoute.portfolioDetail(selectedPortfolio.id))
-                } onAddPortfolio: {
-                    isAddPortfolioPresented = true
+                PortfolioListView(
+                    portfolios: portfolioStore.portfolios,
+                    onOpenPortfolio: { selectedPortfolio in
+                        portfolioPath.append(AppRoute.portfolioDetail(selectedPortfolio.id))
+                    },
+                    onAddPortfolio: {
+                        isAddPortfolioPresented = true
+                    },
+                    onRefresh: {
+                        await withCheckedContinuation { continuation in
+                            portfolioStore.refreshMarketData { _ in
+                                continuation.resume()
+                            }
+                        }
+                    },
+                    isRefreshing: portfolioStore.isRefreshing
+                )
+                .onAppear {
+                    portfolioStore.refreshMarketData()
                 }
                 .navigationDestination(for: AppRoute.self) { route in
                     switch route {
@@ -74,4 +88,3 @@ struct MainTabView: View {
         .background(AppColors.backgroundPrimary)
     }
 }
-

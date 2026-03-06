@@ -3,6 +3,7 @@ import SwiftUI
 
 final class PortfolioStore: ObservableObject {
     @Published private(set) var portfolios: [UserPortfolio] = []
+    @Published private(set) var isRefreshing = false
 
     private var persisted: PersistedPortfolios
     private let storage: PortfolioStorage
@@ -13,7 +14,7 @@ final class PortfolioStore: ObservableObject {
         if let loaded = storage.load() {
             self.persisted = loaded
         } else {
-            self.persisted = PersistedPortfolios.seededFromMockData()
+            self.persisted = PersistedPortfolios(portfolios: [])
             storage.save(persisted: self.persisted)
         }
 
@@ -27,6 +28,21 @@ final class PortfolioStore: ObservableObject {
         persisted.portfolios.append(
             PersistedPortfolio(id: UUID(), name: trimmed, positions: [])
         )
+        persistAndPublish()
+    }
+
+    func renamePortfolio(id: UUID, newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard let index = persisted.portfolios.firstIndex(where: { $0.id == id }) else { return }
+
+        persisted.portfolios[index].name = trimmed
+        persistAndPublish()
+    }
+
+    func deletePortfolio(id: UUID) {
+        guard let index = persisted.portfolios.firstIndex(where: { $0.id == id }) else { return }
+        persisted.portfolios.remove(at: index)
         persistAndPublish()
     }
 
@@ -94,9 +110,50 @@ final class PortfolioStore: ObservableObject {
         return p.positions.first(where: { $0.asset.ticker == ticker })?.amount ?? 0
     }
 
-    private func persistAndPublish() {
+    func refreshMarketData(completion: ((Error?) -> Void)? = nil) {
+        isRefreshing = true
+        let tickers = Array(Set(
+            persisted.portfolios
+                .flatMap { $0.positions }
+                .map { $0.asset.ticker }
+        ))
+
+        guard !tickers.isEmpty else {
+            portfolios = persisted.toUserPortfolios()
+            isRefreshing = false
+            completion?(nil)
+            return
+        }
+
+        ChartAPI.shared.getQuotes(symbols: tickers) { [weak self] result in
+            guard let self else { return }
+
+            switch result {
+            case .success(let quotesByTicker):
+                for portfolioIndex in self.persisted.portfolios.indices {
+                    for positionIndex in self.persisted.portfolios[portfolioIndex].positions.indices {
+                        let ticker = self.persisted.portfolios[portfolioIndex].positions[positionIndex].asset.ticker
+                        if let quote = quotesByTicker[ticker] {
+                            self.persisted.portfolios[portfolioIndex].positions[positionIndex].asset.lastPrice = quote.c
+                        }
+                    }
+                }
+
+                self.persistAndPublish(quotesByTicker: quotesByTicker)
+                self.isRefreshing = false
+                completion?(nil)
+
+            case .failure(let error):
+                self.portfolios = self.persisted.toUserPortfolios()
+                self.isRefreshing = false
+                completion?(error)
+            }
+        }
+    }
+
+    private func persistAndPublish(quotesByTicker: [String: QuoteResponse]? = nil) {
         storage.save(persisted: persisted)
-        portfolios = persisted.toUserPortfolios()
+        portfolios = persisted.toUserPortfolios(quotesByTicker: quotesByTicker)
     }
 }
 
@@ -131,35 +188,27 @@ struct JSONPortfolioStorage: PortfolioStorage {
 struct PersistedPortfolios: Codable {
     var portfolios: [PersistedPortfolio]
 
-    static func seededFromMockData() -> PersistedPortfolios {
-        let converted: [PersistedPortfolio] = MockData.userPortfolios.map { portfolio in
-            let positions: [PersistedPosition] = portfolio.assets.map { item in
-                PersistedPosition(
-                    asset: PersistedAssetSnapshot(
-                        ticker: item.asset.ticker,
-                        name: item.asset.name,
-                        icon: item.asset.icon,
-                        lastPrice: item.asset.price
-                    ),
-                    amount: item.amount,
-                    invested: item.invested
-                )
-            }
-
-            return PersistedPortfolio(id: portfolio.id, name: portfolio.name, positions: positions)
-        }
-
-        return PersistedPortfolios(portfolios: converted)
-    }
-
-    func toUserPortfolios() -> [UserPortfolio] {
+    func toUserPortfolios(quotesByTicker: [String: QuoteResponse]? = nil) -> [UserPortfolio] {
         portfolios.map { p in
             let assets: [PortfolioAsset] = p.positions.map { pos in
+                let quote = quotesByTicker?[pos.asset.ticker]
+                let currentPrice = quote?.c ?? pos.asset.lastPrice
+                let currentValue = pos.amount * currentPrice
+
+                let positionReturnPercent: Double
+                if pos.invested > 0 {
+                    positionReturnPercent = (currentValue - pos.invested) / pos.invested * 100
+                } else {
+                    positionReturnPercent = 0
+                }
+
                 let asset = Asset(
                     ticker: pos.asset.ticker,
                     name: pos.asset.name,
-                    price: pos.asset.lastPrice,
-                    change: .up(0),
+                    price: currentPrice,
+                    change: positionReturnPercent >= 0
+                        ? .up(positionReturnPercent)
+                        : .down(abs(positionReturnPercent)),
                     icon: pos.asset.icon
                 )
 
@@ -168,7 +217,19 @@ struct PersistedPortfolios: Codable {
 
             let totalValue = assets.map { $0.amount * $0.asset.price }.reduce(0, +)
             let invested = assets.map { $0.invested }.reduce(0, +)
-            let summary = PortfolioSummary(totalValue: totalValue, invested: invested, dailyChange: 0)
+
+            let totalReturnPercent: Double
+            if invested > 0 {
+                totalReturnPercent = (totalValue - invested) / invested * 100
+            } else {
+                totalReturnPercent = 0
+            }
+
+            let summary = PortfolioSummary(
+                totalValue: totalValue,
+                invested: invested,
+                totalReturnPercent: totalReturnPercent
+            )
 
             return UserPortfolio(id: p.id, name: p.name, summary: summary, assets: assets)
         }
