@@ -90,6 +90,34 @@ class AuthService: ObservableObject {
         }
     }
     
+    /// Удаление аккаунта. Требует пароль для подтверждения (и переаутентификации в Firebase).
+    func deleteAccount(password: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            errorMessage = "Вы не авторизованы"
+            throw NSError(domain: "AuthService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Пользователь не найден"])
+        }
+        guard let email = user.email else {
+            errorMessage = "Невозможно определить email"
+            throw NSError(domain: "AuthService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Email не найден"])
+        }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        do {
+            let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+            try await user.reauthenticate(with: credential)
+            try await user.delete()
+            currentUser = nil
+            isAuthenticated = false
+            isLoading = false
+        } catch {
+            isLoading = false
+            errorMessage = handleAuthError(error)
+            throw error
+        }
+    }
+    
     // Обработка ошибок Firebase
     private func handleAuthError(_ error: Error) -> String {
         guard let authError = error as NSError? else {
@@ -111,6 +139,8 @@ class AuthService: ObservableObject {
             return "Ошибка сети. Проверьте подключение к интернету"
         case AuthErrorCode.tooManyRequests.rawValue:
             return "Слишком много запросов. Попробуйте позже"
+        case AuthErrorCode.requiresRecentLogin.rawValue:
+            return "Требуется повторный вход. Введите пароль для подтверждения"
         default:
             return authError.localizedDescription
         }
