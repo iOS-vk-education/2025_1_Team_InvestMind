@@ -42,7 +42,7 @@ struct PortfolioAsset: Identifiable, Hashable {
 struct PortfolioSummary : Hashable {
     let totalValue: Double
     let invested: Double
-    let dailyChange: Double
+    let totalReturnPercent: Double
 }
 
 struct UserPortfolio: Identifiable, Hashable {
@@ -114,7 +114,7 @@ enum MockData {
     static let portfolioSummary = PortfolioSummary(
         totalValue: 12450,
         invested: 9800,
-        dailyChange: 2.4
+        totalReturnPercent: 2.4
     )
     
     static let userPortfolios: [UserPortfolio] = [
@@ -130,7 +130,7 @@ enum MockData {
                 summary: PortfolioSummary(
                     totalValue: 5500,
                     invested: 4200,
-                    dailyChange: 1.1
+                    totalReturnPercent: 1.1
                 ),
                 assets: [
                     PortfolioAsset(asset: assets[0], amount: 10, invested: 1500),
@@ -163,10 +163,15 @@ extension Array where Element == UserPortfolio {
     var combinedSummary: PortfolioSummary {
         let totalValue = self.map { $0.summary.totalValue }.reduce(0, +)
         let invested = self.map { $0.summary.invested }.reduce(0, +)
-        let dailyChange = self.map { $0.summary.dailyChange }.reduce(0, +)
-        return PortfolioSummary(totalValue: totalValue,
-                                invested: invested,
-                                dailyChange: dailyChange)
+        let totalReturnPercent = invested > 0
+            ? (totalValue - invested) / invested * 100
+            : 0
+
+        return PortfolioSummary(
+            totalValue: totalValue,
+            invested: invested,
+            totalReturnPercent: totalReturnPercent
+        )
     }
 }
 

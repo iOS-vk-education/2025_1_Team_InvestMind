@@ -25,7 +25,11 @@ struct PortfolioSummaryHeader: View {
                 .font(AppTypography.caption())
                 .foregroundStyle(AppColors.textSecondary)
             
-            AssetChangeBadge(trend: .up(summary.dailyChange))
+            AssetChangeBadge(
+                trend: summary.totalReturnPercent >= 0
+                    ? .up(summary.totalReturnPercent)
+                    : .down(abs(summary.totalReturnPercent))
+            )
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
