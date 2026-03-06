@@ -31,6 +31,21 @@ final class PortfolioStore: ObservableObject {
         persistAndPublish()
     }
 
+    func renamePortfolio(id: UUID, newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        guard let index = persisted.portfolios.firstIndex(where: { $0.id == id }) else { return }
+
+        persisted.portfolios[index].name = trimmed
+        persistAndPublish()
+    }
+
+    func deletePortfolio(id: UUID) {
+        guard let index = persisted.portfolios.firstIndex(where: { $0.id == id }) else { return }
+        persisted.portfolios.remove(at: index)
+        persistAndPublish()
+    }
+
     func buy(asset: Asset, amount: Double, pricePerShare: Double, portfolioId: UUID) {
         guard amount > 0, pricePerShare >= 0 else { return }
         guard let pIndex = persisted.portfolios.firstIndex(where: { $0.id == portfolioId }) else { return }

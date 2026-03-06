@@ -3,6 +3,10 @@ import SwiftUI
 
 struct PortfolioView: View {
     @EnvironmentObject var portfolioStore: PortfolioStore
+    @Environment(\.dismiss) private var dismiss
+    @State private var isRenamePresented = false
+    @State private var isDeleteConfirmationPresented = false
+    @State private var editedName = ""
     let portfolioId: UUID
     var onOpenAsset: (Asset) -> Void
 
@@ -29,6 +33,42 @@ struct PortfolioView: View {
                             .font(AppTypography.headline(weight: .bold))
                             .foregroundStyle(AppColors.textPrimary)
                     }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            Button("Переименовать") {
+                                editedName = portfolio.name
+                                isRenamePresented = true
+                            }
+
+                            Button(role: .destructive) {
+                                isDeleteConfirmationPresented = true
+                            } label: {
+                                Text("Удалить")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
+                }
+                .alert("Переименовать портфель", isPresented: $isRenamePresented) {
+                    TextField("Название", text: $editedName)
+                    Button("Отмена", role: .cancel) {}
+                    Button("Сохранить") {
+                        portfolioStore.renamePortfolio(id: portfolio.id, newName: editedName)
+                    }
+                } message: {
+                    Text("Введите новое название портфеля")
+                }
+                .alert("Удалить портфель?", isPresented: $isDeleteConfirmationPresented) {
+                    Button("Удалить", role: .destructive) {
+                        portfolioStore.deletePortfolio(id: portfolio.id)
+                        dismiss()
+                    }
+
+                    Button("Отмена", role: .cancel) {}
+
+                } message: {
+                    Text("Это действие нельзя отменить")
                 }
             } else {
                 Text("Портфель не найден")
