@@ -33,7 +33,7 @@ final class DashboardViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        MarketAPI.shared.fetchQuotes(symbols: symbols) { [weak self] result in
+        ChartAPI.shared.getQuotes(symbols: symbols) { [weak self] result in
             guard let self else { return }
             self.isLoading = false
 
@@ -60,4 +60,3 @@ final class DashboardViewModel: ObservableObject {
         }
     }
 }
-

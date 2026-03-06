@@ -11,20 +11,31 @@ struct ProfileView: View {
     @EnvironmentObject var authService: AuthService
 
     var body: some View {
-        ProfileViewControllerRepresentable(authService: authService)
+        ProfileViewControllerRepresentable(
+            email: authService.currentUser?.email,
+            onSignOut: {
+                try? authService.signOut()
+            }
+        )
             .ignoresSafeArea()
     }
 }
 
 struct ProfileViewControllerRepresentable: UIViewControllerRepresentable {
-    let authService: AuthService
 
+    let email: String?
+    let onSignOut: () -> Void
+    
     func makeUIViewController(context: Context) -> ProfileViewController {
-        return ProfileViewController(authService: authService)
+        let vc = ProfileViewController()
+        vc.onSignOut = onSignOut
+        vc.email = email
+        return vc
     }
-
+    
     func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
-        uiViewController.updateAuthState()
+        uiViewController.onSignOut = onSignOut
+        uiViewController.email = email
     }
 }
 

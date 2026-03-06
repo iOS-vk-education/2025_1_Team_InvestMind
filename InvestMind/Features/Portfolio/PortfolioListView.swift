@@ -10,11 +10,17 @@ import SwiftUI
 struct PortfolioListView: View {
     let portfolios: [UserPortfolio]
     var onOpenPortfolio: (UserPortfolio) -> Void
+    var onAddPortfolio: () -> Void = {}
+    var onRefresh: () async -> Void = {}
+    let isRefreshing: Bool
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 
+                if isRefreshing {
+                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                }
                 
                 Text("Мои портфели")
                     .font(AppTypography.largeTitle(weight: .bold))
@@ -45,7 +51,11 @@ struct PortfolioListView: View {
                             
                             Spacer()
                             
-                            AssetChangeBadge(trend: .up(portfolio.summary.dailyChange))
+                            AssetChangeBadge(
+                                trend: portfolio.summary.totalReturnPercent >= 0
+                                    ? .up(portfolio.summary.totalReturnPercent)
+                                    : .down(abs(portfolio.summary.totalReturnPercent))
+                            )
                         }
                     }
                     .padding()
@@ -56,6 +66,16 @@ struct PortfolioListView: View {
             }
             .padding()
         }
+        .refreshable {
+            await onRefresh()
+        }
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: onAddPortfolio) {
+                    Image(systemName: "plus")
+                }
+            }
+        }
     }
 }
