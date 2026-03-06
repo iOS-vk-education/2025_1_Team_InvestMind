@@ -8,20 +8,23 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @EnvironmentObject var authService: AuthService
+
     var body: some View {
-        ProfileViewControllerRepresentable()
+        ProfileViewControllerRepresentable(authService: authService)
             .ignoresSafeArea()
     }
 }
 
 struct ProfileViewControllerRepresentable: UIViewControllerRepresentable {
-    
+    let authService: AuthService
+
     func makeUIViewController(context: Context) -> ProfileViewController {
-        return ProfileViewController()
+        return ProfileViewController(authService: authService)
     }
-    
+
     func updateUIViewController(_ uiViewController: ProfileViewController, context: Context) {
-        // No updates needed
+        uiViewController.updateAuthState()
     }
 }
 

@@ -8,7 +8,18 @@
 import UIKit
 
 class ProfileViewController: UIViewController {
-    
+
+    private let authService: AuthService
+
+    init(authService: AuthService) {
+        self.authService = authService
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     // MARK: - UI Components
     
     private let scrollView: UIScrollView = {
@@ -148,24 +159,27 @@ class ProfileViewController: UIViewController {
     
     // MARK: - Menu Items
     
-    private let menuItems: [MenuItem] = [
+    private lazy var menuItems: [MenuItem] = [
         MenuItem(icon: "person.fill", title: "Акаунт"),
         MenuItem(icon: "hand.raised.fill", title: "Безопасность"),
         MenuItem(icon: "creditcard.fill", title: "Покупки"),
         MenuItem(icon: "textformat", title: "Язык", subtitle: "Русский"),
         MenuItem(icon: "gearshape.fill", title: "Настройки"),
-        MenuItem(icon: "questionmark.circle.fill", title: "FAQ")
+        MenuItem(icon: "questionmark.circle.fill", title: "FAQ"),
+        MenuItem(icon: "trash.fill", title: "Удалить аккаунт", subtitle: nil, isDestructive: true)
     ]
     
     struct MenuItem {
         let icon: String
         let title: String
         let subtitle: String?
-        
-        init(icon: String, title: String, subtitle: String? = nil) {
+        let isDestructive: Bool
+
+        init(icon: String, title: String, subtitle: String? = nil, isDestructive: Bool = false) {
             self.icon = icon
             self.title = title
             self.subtitle = subtitle
+            self.isDestructive = isDestructive
         }
     }
     
@@ -176,6 +190,19 @@ class ProfileViewController: UIViewController {
         setupUI()
         setupConstraints()
         setupProfileImage()
+        updateAuthState()
+    }
+
+    /// Обновляет отображение email/имени из текущего пользователя AuthService
+    func updateAuthState() {
+        if let email = authService.currentUser?.email {
+            emailLabel.text = email
+        }
+        if let displayName = authService.currentUser?.displayName, !displayName.isEmpty {
+            nameLabel.text = displayName
+        } else if let email = authService.currentUser?.email {
+            nameLabel.text = email.components(separatedBy: "@").first ?? "Пользователь"
+        }
     }
     
     // MARK: - Setup
@@ -313,8 +340,58 @@ extension ProfileViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let item = menuItems[indexPath.row]
+        if item.isDestructive && item.title == "Удалить аккаунт" {
+            showDeleteAccountConfirmation()
+            return
+        }
         print("Selected: \(item.title)")
         // Handle menu item selection
+    }
+
+    private func showDeleteAccountConfirmation() {
+        let alert = UIAlertController(
+            title: "Удалить аккаунт",
+            message: "Это действие необратимо. Все данные будут удалены. Введите ваш пароль для подтверждения.",
+            preferredStyle: .alert
+        )
+        alert.addTextField { textField in
+            textField.placeholder = "Пароль"
+            textField.isSecureTextEntry = true
+            textField.autocapitalizationType = .none
+        }
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self,
+                  let password = alert.textFields?.first?.text,
+                  !password.isEmpty else {
+                self?.showErrorAlert(message: "Введите пароль")
+                return
+            }
+            self.performAccountDeletion(password: password)
+        })
+        present(alert, animated: true)
+    }
+
+    private func performAccountDeletion(password: String) {
+        let loadingAlert = UIAlertController(title: "Удаление...", message: nil, preferredStyle: .alert)
+        present(loadingAlert, animated: true)
+
+        Task { @MainActor in
+            do {
+                try await authService.deleteAccount(password: password)
+                loadingAlert.dismiss(animated: true)
+                // После удаления isAuthenticated = false, ContentView вернёт на экран входа
+            } catch {
+                loadingAlert.dismiss(animated: true)
+                showErrorAlert(message: authService.errorMessage ?? "Не удалось удалить аккаунт")
+            }
+        }
+    }
+
+    private func showErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
@@ -409,8 +486,10 @@ class MenuTableViewCell: UITableViewCell {
         if let image = UIImage(systemName: item.icon) {
             let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
             iconImageView.image = image.withConfiguration(config)
+            iconImageView.tintColor = item.isDestructive ? .systemRed : .white
         }
         titleLabel.text = item.title
+        titleLabel.textColor = item.isDestructive ? .systemRed : .white
         subtitleLabel.text = item.subtitle
         subtitleLabel.isHidden = item.subtitle == nil
     }
