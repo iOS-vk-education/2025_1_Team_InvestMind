@@ -9,6 +9,7 @@ import UIKit
 
 class ProfileViewController: UIViewController {
 
+    var authService: AuthService?
     var onSignOut: (() -> Void)?
 
     var email: String? {
@@ -16,7 +17,7 @@ class ProfileViewController: UIViewController {
             emailLabel.text = email ?? ""
         }
     }
-    
+
     // MARK: - UI Components
     
     private let scrollView: UIScrollView = {
@@ -107,7 +108,16 @@ class ProfileViewController: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
+    private let deleteAccountButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        config.title = "Удалить учётную запись"
+        config.baseForegroundColor = .systemRed
+        let button = UIButton(configuration: config)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -131,8 +141,10 @@ class ProfileViewController: UIViewController {
         contentView.addSubview(nameLabel)
         contentView.addSubview(emailLabel)
         contentView.addSubview(signOutButton)
+        contentView.addSubview(deleteAccountButton)
 
         signOutButton.addTarget(self, action: #selector(signOutTapped), for: .touchUpInside)
+        deleteAccountButton.addTarget(self, action: #selector(deleteAccountTapped), for: .touchUpInside)
     }
     
     private func setupConstraints() {
@@ -175,14 +187,69 @@ class ProfileViewController: UIViewController {
             signOutButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             signOutButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             signOutButton.heightAnchor.constraint(equalToConstant: 52),
-            signOutButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
+
+            deleteAccountButton.topAnchor.constraint(equalTo: signOutButton.bottomAnchor, constant: 16),
+            deleteAccountButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            deleteAccountButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            deleteAccountButton.heightAnchor.constraint(equalToConstant: 52),
+            deleteAccountButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24)
         ])
     }
-    
+
     // MARK: - Actions
-    
+
     @objc private func signOutTapped() {
         onSignOut?()
+    }
+
+    @objc private func deleteAccountTapped() {
+        showDeleteAccountConfirmation()
+    }
+
+    private func showDeleteAccountConfirmation() {
+        let alert = UIAlertController(
+            title: "Удалить учётную запись",
+            message: "Это действие необратимо. Все данные будут удалены. Введите пароль для подтверждения.",
+            preferredStyle: .alert
+        )
+        alert.addTextField { textField in
+            textField.placeholder = "Пароль"
+            textField.isSecureTextEntry = true
+            textField.autocapitalizationType = .none
+        }
+        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+            guard let self = self,
+                  let password = alert.textFields?.first?.text,
+                  !password.isEmpty else {
+                self?.showErrorAlert(message: "Введите пароль")
+                return
+            }
+            self.performAccountDeletion(password: password)
+        })
+        present(alert, animated: true)
+    }
+
+    private func performAccountDeletion(password: String) {
+        guard let authService = authService else { return }
+        let loadingAlert = UIAlertController(title: "Удаление...", message: nil, preferredStyle: .alert)
+        present(loadingAlert, animated: true)
+
+        Task { @MainActor in
+            do {
+                try await authService.deleteAccount(password: password)
+                loadingAlert.dismiss(animated: true)
+            } catch {
+                loadingAlert.dismiss(animated: true)
+                showErrorAlert(message: authService.errorMessage ?? "Не удалось удалить аккаунт")
+            }
+        }
+    }
+
+    private func showErrorAlert(message: String) {
+        let alert = UIAlertController(title: "Ошибка", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
 
