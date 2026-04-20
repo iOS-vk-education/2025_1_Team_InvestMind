@@ -130,6 +130,32 @@ final class ChartAPI {
         }.resume()
     }
 
+    func searchAsset(
+        symbol: String,
+        completion: @escaping (Result<Asset, Error>) -> Void
+    ) {
+        let trimmed = symbol.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard !trimmed.isEmpty else {
+            completeOnMain(completion, with: .failure(URLError(.badURL)))
+            return
+        }
+
+        getQuote(symbol: trimmed) { result in
+            switch result {
+            case .success(let quote):
+                let asset = Asset(
+                    ticker: trimmed,
+                    name: trimmed,
+                    price: quote.c,
+                    change: quote.dp >= 0 ? .up(quote.dp) : .down(abs(quote.dp)),
+                    icon: "chart.line.uptrend.xyaxis"
+                )
+                self.completeOnMain(completion, with: .success(asset))
+            case .failure(let error):
+                self.completeOnMain(completion, with: .failure(error))
+            }
+        }
+    }
     
     // Функция для получения информации об одном тикере
 //    func getQuote(symbol: String, completion: @escaping (Result<[QuoteResponse], Error>) -> Void)
@@ -195,4 +221,3 @@ final class ChartAPI {
         }
     }
 }
-

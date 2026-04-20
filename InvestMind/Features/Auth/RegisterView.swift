@@ -38,7 +38,7 @@ struct RegisterView: View {
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            AppColors.backgroundPrimary.opacity(0.75)
+            AppColors.authOverlay
                 .ignoresSafeArea()
             
             ScrollViewReader { proxy in
@@ -63,7 +63,11 @@ struct RegisterView: View {
                                 .foregroundStyle(Color.gray)
                                 .frame(width: 20)
                             
-                            TextField("Email", text: $email)
+                            TextField(
+                                "",
+                                text: $email,
+                                prompt: Text("Email").foregroundStyle(Color.gray)
+                            )
                                 .keyboardType(.emailAddress)
                                 .textContentType(.emailAddress)
                                 .autocapitalization(.none)
@@ -108,11 +112,19 @@ struct RegisterView: View {
                             
                             Group {
                                 if isPasswordVisible {
-                                    TextField("Пароль", text: $password)
-                                        .textContentType(.newPassword)
+                                    TextField(
+                                        "",
+                                        text: $password,
+                                        prompt: Text("Пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.newPassword)
                                 } else {
-                                    SecureField("Пароль", text: $password)
-                                        .textContentType(.newPassword)
+                                    SecureField(
+                                        "",
+                                        text: $password,
+                                        prompt: Text("Пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.newPassword)
                                 }
                             }
                             .foregroundStyle(.black)
@@ -157,11 +169,19 @@ struct RegisterView: View {
                             
                             Group {
                                 if isConfirmPasswordVisible {
-                                    TextField("Повторите пароль", text: $confirmPassword)
-                                        .textContentType(.newPassword)
+                                    TextField(
+                                        "",
+                                        text: $confirmPassword,
+                                        prompt: Text("Повторите пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.newPassword)
                                 } else {
-                                    SecureField("Повторите пароль", text: $confirmPassword)
-                                        .textContentType(.newPassword)
+                                    SecureField(
+                                        "",
+                                        text: $confirmPassword,
+                                        prompt: Text("Повторите пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.newPassword)
                                 }
                             }
                             .foregroundStyle(.black)

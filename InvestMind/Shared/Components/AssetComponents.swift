@@ -28,11 +28,13 @@ struct AssetCompactCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
-                Image(systemName: asset.icon)
-                    .foregroundStyle(AppColors.textPrimary)
-                    .frame(width: 40, height: 40)
-                    .background(AppColors.backgroundSecondary)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                TickerLogoView(
+                    ticker: asset.ticker,
+                    fallbackSystemImage: asset.icon,
+                    size: 40,
+                    cornerRadius: 12,
+                    paddingInside: 6
+                )
 
                 Spacer()
 
@@ -68,11 +70,13 @@ struct MarketAssetRow: View {
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
-            Image(systemName: asset.icon)
-                .foregroundStyle(AppColors.textPrimary)
-                .frame(width: 32, height: 32)
-                .background(AppColors.backgroundSecondary)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            TickerLogoView(
+                ticker: asset.ticker,
+                fallbackSystemImage: asset.icon,
+                size: 32,
+                cornerRadius: 8,
+                paddingInside: 5
+            )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(asset.name)
@@ -124,5 +128,3 @@ struct StatBadge: View {
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
-
-

@@ -116,6 +116,13 @@ struct PortfolioView: View {
             ForEach(portfolio.assets) { item in
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     HStack {
+                        TickerLogoView(
+                            ticker: item.asset.ticker,
+                            fallbackSystemImage: item.asset.icon,
+                            size: 32,
+                            cornerRadius: 8,
+                            paddingInside: 5
+                        )
                         Text(item.asset.name)
                             .font(AppTypography.body(weight: .semibold))
                             .foregroundStyle(AppColors.textPrimary)
