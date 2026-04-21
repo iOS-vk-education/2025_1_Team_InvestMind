@@ -78,6 +78,8 @@ enum AppColors {
     })
 
     static let cardShadow = Color.black.opacity(0.15)
+    static let incrValue  = accentSecondary                        // рост — зелёный
+    static let decrValue  = danger                                 // падение — красный
 }
 
 enum AppGradients {
