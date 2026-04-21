@@ -32,7 +32,7 @@ struct SurveyView: View {
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            AppColors.backgroundPrimary.opacity(0.75)
+            AppColors.authOverlay
                 .ignoresSafeArea()
             
             VStack(spacing: AppSpacing.lg) {

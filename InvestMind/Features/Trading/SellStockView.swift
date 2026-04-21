@@ -94,7 +94,6 @@ struct SellStockView: View {
             .navigationTitle("Продать \(asset.ticker)")
             .scrollContentBackground(.hidden)
             .background(AppColors.backgroundPrimary)
-            .preferredColorScheme(.dark)
             .tint(AppColors.accentPrimary)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

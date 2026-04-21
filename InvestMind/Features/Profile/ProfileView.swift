@@ -9,23 +9,25 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var authService: AuthService
+    @AppStorage("selectedTheme") private var selectedThemeRawValue = AppTheme.system.rawValue
 
     var body: some View {
         ProfileViewControllerRepresentable(
             authService: authService,
             email: authService.currentUser?.email,
+            selectedThemeRawValue: selectedThemeRawValue,
             onSignOut: {
                 try? authService.signOut()
             }
         )
-            .ignoresSafeArea()
+        .ignoresSafeArea()
     }
 }
 
 struct ProfileViewControllerRepresentable: UIViewControllerRepresentable {
-
     let authService: AuthService
     let email: String?
+    let selectedThemeRawValue: String
     let onSignOut: () -> Void
 
     func makeUIViewController(context: Context) -> ProfileViewController {
@@ -33,6 +35,7 @@ struct ProfileViewControllerRepresentable: UIViewControllerRepresentable {
         vc.authService = authService
         vc.onSignOut = onSignOut
         vc.email = email
+        vc.selectedThemeRawValue = selectedThemeRawValue
         return vc
     }
 
@@ -40,6 +43,8 @@ struct ProfileViewControllerRepresentable: UIViewControllerRepresentable {
         uiViewController.authService = authService
         uiViewController.onSignOut = onSignOut
         uiViewController.email = email
+        uiViewController.selectedThemeRawValue = selectedThemeRawValue
+        uiViewController.applyTheme()
     }
 }
 
