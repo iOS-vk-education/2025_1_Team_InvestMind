@@ -1,5 +1,5 @@
 {
-  "originHash" : "c63c63846d9c539229e96de38d6af51417e28c0ee9a0bc48bd0f0f19d923c329",
+  "originHash" : "6c557d057faf1892e02a74b65cbdcb56ee6f31cb36f5e2e78897d5d7c2c44371",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -116,6 +116,15 @@
       "state" : {
         "revision" : "540318ecedd63d883069ae7f1ed811a2df00b6ac",
         "version" : "2.4.0"
+      }
+    },
+    {
+      "identity" : "sscoachmarks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SimformSolutionsPvtLtd/SSCoachMarks.git",
+      "state" : {
+        "revision" : "bd1be341a6941a6c0e5f8a47247c9b7617df671c",
+        "version" : "1.1.0"
       }
     },
     {

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D262EFAB9170009792E /* FirebaseAuth */; };
 		DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D282EFAB9170009792E /* FirebaseCore */; };
+		DBD771632F97829700053DA2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DBD771622F97829700053DA2 /* FirebaseFirestore */; };
+		DBE35EED31A9F8A300A7D0A1 /* SSCoachMarks in Frameworks */ = {isa = PBXBuildFile; productRef = DBE35EEC31A9F8A300A7D0A1 /* SSCoachMarks */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +45,8 @@
 			files = (
 				DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */,
 				DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */,
+				DBD771632F97829700053DA2 /* FirebaseFirestore in Frameworks */,
+				DBE35EED31A9F8A300A7D0A1 /* SSCoachMarks in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +57,7 @@
 			isa = PBXGroup;
 			children = (
 				43155BDC2ECDEABB0084E0AF /* InvestMind */,
+				DBD771612F97829700053DA2 /* Frameworks */,
 				43155BDB2ECDEABB0084E0AF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -63,6 +68,13 @@
 				43155BDA2ECDEABB0084E0AF /* InvestMind.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DBD771612F97829700053DA2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,6 +99,8 @@
 			packageProductDependencies = (
 				DB808D262EFAB9170009792E /* FirebaseAuth */,
 				DB808D282EFAB9170009792E /* FirebaseCore */,
+				DBD771622F97829700053DA2 /* FirebaseFirestore */,
+				DBE35EEC31A9F8A300A7D0A1 /* SSCoachMarks */,
 			);
 			productName = InvestMind;
 			productReference = 43155BDA2ECDEABB0084E0AF /* InvestMind.app */;
@@ -121,6 +135,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				DBE35EEB31A9F8A300A7D0A1 /* XCRemoteSwiftPackageReference "SSCoachMarks" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 43155BDB2ECDEABB0084E0AF /* Products */;
@@ -382,6 +397,14 @@
 				minimumVersion = 12.7.0;
 			};
 		};
+		DBE35EEB31A9F8A300A7D0A1 /* XCRemoteSwiftPackageReference "SSCoachMarks" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SimformSolutionsPvtLtd/SSCoachMarks.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -394,6 +417,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		DBD771622F97829700053DA2 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		DBE35EEC31A9F8A300A7D0A1 /* SSCoachMarks */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBE35EEB31A9F8A300A7D0A1 /* XCRemoteSwiftPackageReference "SSCoachMarks" */;
+			productName = SSCoachMarks;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

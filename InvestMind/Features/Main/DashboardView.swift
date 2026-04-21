@@ -1,4 +1,5 @@
 import SwiftUI
+import SSCoachMarks
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
@@ -7,15 +8,12 @@ struct DashboardView: View {
 
     private var sectionTitle: String {
         switch viewModel.selectedSegment {
-        case .stocks:
-            return "Акции для покупки"
-        case .funds:
-            return "Фонды для покупки"
-        case .crypto:
-            return "Криптовалюты для покупки"
+        case .stocks: return "Акции для покупки"
+        case .funds:  return "Фонды для покупки"
+        case .crypto: return "Криптовалюты для покупки"
         }
     }
-    
+
     init(onOpenAsset: @escaping (Asset) -> Void) {
         self.onOpenAsset = onOpenAsset
 
@@ -24,19 +22,12 @@ struct DashboardView: View {
                 ? UIColor(red: 0.09, green: 0.11, blue: 0.17, alpha: 1)
                 : UIColor.secondarySystemBackground
         }
-
         let selectedSegmentTint = UIColor { trait in
-            trait.userInterfaceStyle == .dark
-                ? .white
-                : UIColor.systemBackground
+            trait.userInterfaceStyle == .dark ? .white : UIColor.systemBackground
         }
-
         let normalTextColor = UIColor { trait in
-            trait.userInterfaceStyle == .dark
-                ? .white
-                : UIColor.label
+            trait.userInterfaceStyle == .dark ? .white : UIColor.label
         }
-
         let selectedTextColor = UIColor { trait in
             trait.userInterfaceStyle == .dark
                 ? UIColor(red: 0.04, green: 0.05, blue: 0.09, alpha: 1)
@@ -45,20 +36,12 @@ struct DashboardView: View {
 
         UISegmentedControl.appearance().backgroundColor = segmentedBackground
         UISegmentedControl.appearance().selectedSegmentTintColor = selectedSegmentTint
-
         UISegmentedControl.appearance().setTitleTextAttributes(
-            [
-                .foregroundColor: normalTextColor,
-                .font: UIFont.systemFont(ofSize: 14, weight: .medium)
-            ],
+            [.foregroundColor: normalTextColor,   .font: UIFont.systemFont(ofSize: 14, weight: .medium)],
             for: .normal
         )
-
         UISegmentedControl.appearance().setTitleTextAttributes(
-            [
-                .foregroundColor: selectedTextColor,
-                .font: UIFont.systemFont(ofSize: 14, weight: .semibold)
-            ],
+            [.foregroundColor: selectedTextColor, .font: UIFont.systemFont(ofSize: 14, weight: .semibold)],
             for: .selected
         )
     }
@@ -70,10 +53,17 @@ struct DashboardView: View {
                 if viewModel.isLoading {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                
+
                 Text("Рынок")
                     .font(AppTypography.largeTitle(weight: .bold))
                     .foregroundStyle(AppColors.textPrimary)
+                    .showCoachMark(
+                        order: 0,
+                        title: "Рынок акций",
+                        description: "На этой вкладке ты смотришь рынок, выбираешь интересные акции и открываешь карточки инструментов.",
+                        highlightViewCornerRadius: 18,
+                        coachMarkBackGroundColor: AppColors.backgroundSecondary
+                    )
 
                 Picker("Тип актива", selection: Binding(
                     get: { viewModel.selectedSegment },
@@ -84,7 +74,14 @@ struct DashboardView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                
+                .showCoachMark(
+                    order: 1,
+                    title: "Что показывать на рынке",
+                    description: "Здесь можно переключаться между акциями, фондами и криптовалютой и быстро менять список на экране.",
+                    highlightViewCornerRadius: 20,
+                    coachMarkBackGroundColor: AppColors.backgroundSecondary
+                )
+
                 Text(sectionTitle)
                     .font(AppTypography.caption())
                     .foregroundStyle(AppColors.textSecondary)
@@ -107,13 +104,19 @@ struct DashboardView: View {
                     }
                 }
                 .padding(.top, 8)
+                .showCoachMark(
+                    order: 2,
+                    title: "Список акций и инструментов",
+                    description: "Нажми на строку, чтобы открыть карточку инструмента, посмотреть график и перейти к покупке.",
+                    highlightViewCornerRadius: 24,
+                    coachMarkBackGroundColor: AppColors.backgroundSecondary
+                )
             }
             .padding()
         }
         .refreshable {
             viewModel.loadMarket()
         }
-        
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
         .onAppear {
             if viewModel.stockAssets.isEmpty {
@@ -128,6 +131,13 @@ struct DashboardView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(AppColors.textPrimary)
                 }
+                .showCoachMark(
+                    order: 3,
+                    title: "Поиск акций",
+                    description: "Через поиск удобно находить акции по тикеру или названию и сразу переходить в карточку бумаги.",
+                    highlightViewCornerRadius: 14,
+                    coachMarkBackGroundColor: AppColors.backgroundSecondary
+                )
             }
         }
         .sheet(isPresented: $isSearchPresented) {

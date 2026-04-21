@@ -14,12 +14,26 @@ struct PortfolioView: View {
         portfolioStore.portfolios.first(where: { $0.id == portfolioId })
     }
 
+    private var currency: AppCurrency { portfolioStore.selectedCurrency }
+
     var body: some View {
         Group {
             if let portfolio {
                 ScrollView {
                     VStack(alignment: .leading, spacing: AppSpacing.lg) {
                         header(portfolio)
+                        if !portfolio.assets.isEmpty {
+                            PortfolioChartsCarousel(
+                                assets: portfolio.assets.map {
+                                    PortfolioAssetChartData(
+                                        name: $0.asset.ticker,
+                                        kind: .stock,
+                                        quantity: $0.amount,
+                                        price: $0.asset.price
+                                    )
+                                }
+                            )
+                        }
                         assetList(portfolio)
                     }
                     .padding()
@@ -39,7 +53,6 @@ struct PortfolioView: View {
                                 editedName = portfolio.name
                                 isRenamePresented = true
                             }
-
                             Button(role: .destructive) {
                                 isDeleteConfirmationPresented = true
                             } label: {
@@ -64,9 +77,7 @@ struct PortfolioView: View {
                         portfolioStore.deletePortfolio(id: portfolio.id)
                         dismiss()
                     }
-
                     Button("Отмена", role: .cancel) {}
-
                 } message: {
                     Text("Это действие нельзя отменить")
                 }
@@ -82,13 +93,42 @@ struct PortfolioView: View {
 
     private func header(_ portfolio: UserPortfolio) -> some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            Text("Стоимость портфеля")
-                .font(AppTypography.caption())
-                .foregroundStyle(AppColors.textSecondary)
-
-            Text(String(format: "$%.0f", portfolio.summary.totalValue))
-                .font(AppTypography.largeTitle(weight: .bold))
-                .foregroundStyle(AppColors.textPrimary)
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Стоимость портфеля")
+                        .font(AppTypography.caption())
+                        .foregroundStyle(AppColors.textSecondary)
+                    Text(formatValue(portfolio.summary.totalValue))
+                        .font(AppTypography.largeTitle(weight: .bold))
+                        .foregroundStyle(AppColors.textPrimary)
+                }
+                Spacer()
+                // Выбор валюты
+                Menu {
+                    ForEach(AppCurrency.allCases, id: \.self) { c in
+                        Button {
+                            portfolioStore.selectedCurrency = c
+                        } label: {
+                            HStack {
+                                Text(c.displayName)
+                                if c == currency { Image(systemName: "checkmark") }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(currency.rawValue)
+                            .font(AppTypography.caption(weight: .semibold))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10))
+                    }
+                    .foregroundStyle(AppColors.accentPrimary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(AppColors.accentPrimary.opacity(0.12))
+                    .clipShape(Capsule())
+                }
+            }
 
             HStack {
                 AssetChangeBadge(
@@ -96,7 +136,7 @@ struct PortfolioView: View {
                         ? .up(portfolio.summary.totalReturnPercent)
                         : .down(abs(portfolio.summary.totalReturnPercent))
                 )
-                Text("Инвестировано: \(Int(portfolio.summary.invested))$")
+                Text("Вложено: \(formatValue(portfolio.summary.invested))")
                     .font(AppTypography.caption())
                     .foregroundStyle(AppColors.textSecondary)
             }
@@ -127,21 +167,21 @@ struct PortfolioView: View {
                             .font(AppTypography.body(weight: .semibold))
                             .foregroundStyle(AppColors.textPrimary)
                         Spacer()
-                        Text(String(format: "$%.2f", item.amount * item.asset.price))
+                        Text(formatValue(item.amount * item.asset.price))
                             .foregroundStyle(AppColors.textPrimary)
                     }
 
                     HStack {
-                        Text("\(item.amount, specifier: "%.1f") шт · \(item.asset.ticker)")
+                        Text("\(item.amount, specifier: "%.4g") шт · \(item.asset.ticker)")
                             .foregroundStyle(AppColors.textSecondary)
                             .font(AppTypography.caption())
                         Spacer()
                         let profitPercent = item.invested > 0 ? item.profit / item.invested * 100 : 0
                         Text(
                             String(
-                                format: "%@%.0f$ (%@%.2f%%)",
+                                format: "%@%@ (%@%.2f%%)",
                                 item.profit >= 0 ? "+" : "-",
-                                abs(item.profit),
+                                formatValue(abs(item.profit)),
                                 profitPercent >= 0 ? "+" : "-",
                                 abs(profitPercent)
                             )
@@ -157,6 +197,9 @@ struct PortfolioView: View {
             }
         }
     }
+
+    // Форматирует сумму с символом выбранной валюты.
+    private func formatValue(_ value: Double) -> String {
+        String(format: "%@%.2f", currency.symbol, value)
+    }
 }
-
-

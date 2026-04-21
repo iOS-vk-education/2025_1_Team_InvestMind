@@ -89,38 +89,15 @@ struct StockDetailView: View {
                 .font(AppTypography.headline(weight: .bold))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Chart {
-                ForEach(Array(viewModel.chartPrices.enumerated()), id: \.offset) { index, price in
-                    LineMark(
-                        x: .value("Index", index),
-                        y: .value("Price", price)
-                    )
-                    .interpolationMethod(.catmullRom)
-                    .foregroundStyle(AppColors.accentPrimary)
+            PriceChartView(prices: viewModel.chartPrices)
+                .overlay {
+                    if viewModel.chartPrices.isEmpty {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .background(AppColors.backgroundSecondary.opacity(0.6))
+                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    }
                 }
-            }
-            .chartXAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                        .foregroundStyle(AppColors.border)
-
-                    AxisValueLabel()
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-            }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                        .foregroundStyle(AppColors.border)
-
-                    AxisValueLabel()
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-            }
-            .frame(height: 220)
-            .padding()
-            .background(AppColors.backgroundSecondary)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             
             Picker("Period", selection: $viewModel.selectedPeriod) {
                 ForEach(ChartPeriod.allCases) { period in
