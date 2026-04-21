@@ -47,6 +47,14 @@ struct StockDetailView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
             HStack {
+                TickerLogoView(
+                    ticker: viewModel.asset.ticker,
+                    fallbackSystemImage: viewModel.asset.icon,
+                    size: 44,
+                    cornerRadius: 12,
+                    paddingInside: 6
+                )
+                
                 VStack(alignment: .leading, spacing: 4) {
                     Text(viewModel.asset.name)
                         .font(AppTypography.headline(weight: .bold))
@@ -121,7 +129,7 @@ struct StockDetailView: View {
             }
             .pickerStyle(.segmented)
             .tint(AppColors.accentPrimary)
-            .environment(\.colorScheme, .dark)
+//            .environment(\.colorScheme, .dark)
             .onChange(of: viewModel.selectedPeriod) { _, _ in
                 viewModel.loadChartPrices()
             }

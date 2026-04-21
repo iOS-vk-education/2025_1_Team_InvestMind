@@ -16,7 +16,7 @@ struct OnboardingView: View {
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            AppColors.backgroundPrimary.opacity(0.75)
+            AppColors.authOverlay
                 .ignoresSafeArea()
 
             VStack(spacing: AppSpacing.lg) {
@@ -39,7 +39,7 @@ struct OnboardingView: View {
                             Text(page.subtitle)
                                 .multilineTextAlignment(.center)
                                 .font(AppTypography.body())
-                                .foregroundStyle(AppColors.textSecondary)
+                                .foregroundStyle(AppColors.authTextSecondary)
                                 .padding(.horizontal, AppSpacing.xl)
                         }
                         .padding(.top, AppSpacing.xl)

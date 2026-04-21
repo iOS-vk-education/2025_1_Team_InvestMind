@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D262EFAB9170009792E /* FirebaseAuth */; };
 		DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = DB808D282EFAB9170009792E /* FirebaseCore */; };
+		DBD771632F97829700053DA2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = DBD771622F97829700053DA2 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				DB808D292EFAB9170009792E /* FirebaseCore in Frameworks */,
 				DB808D272EFAB9170009792E /* FirebaseAuth in Frameworks */,
+				DBD771632F97829700053DA2 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				43155BDC2ECDEABB0084E0AF /* InvestMind */,
+				DBD771612F97829700053DA2 /* Frameworks */,
 				43155BDB2ECDEABB0084E0AF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -63,6 +66,13 @@
 				43155BDA2ECDEABB0084E0AF /* InvestMind.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DBD771612F97829700053DA2 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -87,6 +97,7 @@
 			packageProductDependencies = (
 				DB808D262EFAB9170009792E /* FirebaseAuth */,
 				DB808D282EFAB9170009792E /* FirebaseCore */,
+				DBD771622F97829700053DA2 /* FirebaseFirestore */,
 			);
 			productName = InvestMind;
 			productReference = 43155BDA2ECDEABB0084E0AF /* InvestMind.app */;
@@ -288,7 +299,7 @@
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = V6DMK3YX7D;
+				DEVELOPMENT_TEAM = BYS3MVZBL6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = InvestMind/Info.plist;
@@ -394,6 +405,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		DBD771622F97829700053DA2 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DB808D252EFAB9170009792E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

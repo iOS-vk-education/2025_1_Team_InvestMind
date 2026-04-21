@@ -71,6 +71,34 @@ enum AppRoute: Hashable {
     case portfolioDetail(UUID)
 }
 
+enum AppCurrency: String, CaseIterable, Codable {
+    case usd = "USD"
+    case eur = "EUR"
+    case rub = "RUB"
+    case cny = "CNY"
+    case gbp = "GBP"
+
+    var symbol: String {
+        switch self {
+        case .usd: return "$"
+        case .eur: return "€"
+        case .rub: return "₽"
+        case .cny: return "¥"
+        case .gbp: return "£"
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .usd: return "Доллар США (USD)"
+        case .eur: return "Евро (EUR)"
+        case .rub: return "Российский рубль (RUB)"
+        case .cny: return "Китайский юань (CNY)"
+        case .gbp: return "Фунт стерлингов (GBP)"
+        }
+    }
+}
+
 enum FlowStep {
     case splash
     case onboarding

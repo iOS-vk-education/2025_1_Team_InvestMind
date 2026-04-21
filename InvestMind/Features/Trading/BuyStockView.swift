@@ -65,7 +65,6 @@ struct BuyStockView: View {
             .navigationTitle("Купить \(asset.ticker)")
             .scrollContentBackground(.hidden)
             .background(AppColors.backgroundPrimary)
-            .preferredColorScheme(.dark)
             .tint(AppColors.accentPrimary)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -8,26 +8,33 @@
 import SwiftUI
 
 struct PortfolioListView: View {
+    @EnvironmentObject var portfolioStore: PortfolioStore
+
     let portfolios: [UserPortfolio]
     var onOpenPortfolio: (UserPortfolio) -> Void
     var onAddPortfolio: () -> Void = {}
     var onRefresh: () async -> Void = {}
     let isRefreshing: Bool
 
+    private var currency: AppCurrency { portfolioStore.selectedCurrency }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                
+
                 if isRefreshing {
                     ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                 }
-                
+
                 Text("Мои портфели")
                     .font(AppTypography.largeTitle(weight: .bold))
                     .foregroundStyle(AppColors.textPrimary)
                     .padding(.bottom, AppSpacing.md)
-                
-                PortfolioSummaryHeader(summary: portfolios.combinedSummary)
+
+                PortfolioSummaryHeader(
+                    summary: portfolios.combinedSummary,
+                    currencySymbol: currency.symbol
+                )
 
                 ForEach(portfolios) { portfolio in
                     VStack(alignment: .leading, spacing: AppSpacing.xs) {
@@ -38,19 +45,18 @@ struct PortfolioListView: View {
 
                             Spacer()
 
-                            Text(String(format: "$%.0f", portfolio.summary.totalValue))
+                            Text(String(format: "%@%.0f", currency.symbol, portfolio.summary.totalValue))
                                 .foregroundStyle(AppColors.textPrimary)
                                 .font(AppTypography.body(weight: .bold))
                         }
 
                         HStack {
-
-                            Text("Инвестировано: \(Int(portfolio.summary.invested))$")
+                            Text("Вложено: \(currency.symbol)\(Int(portfolio.summary.invested))")
                                 .foregroundStyle(AppColors.textSecondary)
                                 .font(AppTypography.caption())
-                            
+
                             Spacer()
-                            
+
                             AssetChangeBadge(
                                 trend: portfolio.summary.totalReturnPercent >= 0
                                     ? .up(portfolio.summary.totalReturnPercent)

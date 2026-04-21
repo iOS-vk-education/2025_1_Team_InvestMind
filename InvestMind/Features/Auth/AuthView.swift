@@ -35,7 +35,7 @@ struct AuthView: View {
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
-            AppColors.backgroundPrimary.opacity(0.75)
+            AppColors.authOverlay
                 .ignoresSafeArea()
             
             ScrollViewReader { proxy in
@@ -60,7 +60,11 @@ struct AuthView: View {
                                     .foregroundStyle(Color.gray)
                                     .frame(width: 20)
                                 
-                                TextField("Email", text: $email)
+                                TextField(
+                                    "",
+                                    text: $email,
+                                    prompt: Text("Email").foregroundStyle(Color.gray)
+                                )
                                     .keyboardType(.emailAddress)
                                     .textContentType(.emailAddress)
                                     .autocapitalization(.none)
@@ -106,11 +110,19 @@ struct AuthView: View {
                             
                             Group {
                                 if isPasswordVisible {
-                                    TextField("Пароль", text: $password)
-                                        .textContentType(.password)
+                                    TextField(
+                                        "",
+                                        text: $password,
+                                        prompt: Text("Пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.password)
                                 } else {
-                                    SecureField("Пароль", text: $password)
-                                        .textContentType(.password)
+                                    SecureField(
+                                        "",
+                                        text: $password,
+                                        prompt: Text("Пароль").foregroundStyle(Color.gray)
+                                    )
+                                    .textContentType(.password)
                                 }
                             }
                             .foregroundStyle(.black)

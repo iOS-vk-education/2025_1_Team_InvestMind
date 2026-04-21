@@ -11,18 +11,24 @@ import SwiftUI
 enum MarketSegment: String, CaseIterable {
     case stocks = "Акции"
     case funds  = "Фонды"
+    case crypto = "Крипто"
 }
 
 final class DashboardViewModel: ObservableObject {
 
     @Published var selectedSegment: MarketSegment = .stocks
-    @Published var stockAssets: [Asset] = []
-    @Published var fundAssets:  [Asset] = []
+    @Published var stockAssets:  [Asset] = []
+    @Published var fundAssets:   [Asset] = []
+    @Published var cryptoAssets: [Asset] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
     var assets: [Asset] {
-        selectedSegment == .stocks ? stockAssets : fundAssets
+        switch selectedSegment {
+        case .stocks: return stockAssets
+        case .funds:  return fundAssets
+        case .crypto: return cryptoAssets
+        }
     }
 
     // MARK: – Stocks
@@ -47,16 +53,36 @@ final class DashboardViewModel: ObservableObject {
     private let fundSymbols = ["SPY", "QQQ", "VTI", "IWM", "EFA", "GLD", "VNQ", "XLF", "XLE", "AGG"]
 
     private let fundMeta: [String: (name: String, icon: String)] = [
-        "SPY": ("SPDR S&P 500 ETF",          "chart.bar.fill"),
-        "QQQ": ("Invesco Nasdaq-100 ETF",     "chart.line.uptrend.xyaxis"),
-        "VTI": ("Vanguard Total Market ETF",  "building.columns.fill"),
-        "IWM": ("iShares Russell 2000 ETF",   "dollarsign.circle.fill"),
-        "EFA": ("iShares MSCI EAFE ETF",      "globe.europe.africa.fill"),
-        "GLD": ("SPDR Gold Shares",           "star.fill"),
-        "VNQ": ("Vanguard Real Estate ETF",   "house.fill"),
-        "XLF": ("Financial Select SPDR",      "banknote.fill"),
-        "XLE": ("Energy Select SPDR",         "flame.fill"),
-        "AGG": ("iShares Core Bond ETF",      "shield.fill")
+        "SPY": ("SPDR S&P 500 ETF",         "chart.bar.fill"),
+        "QQQ": ("Invesco Nasdaq-100 ETF",    "chart.line.uptrend.xyaxis"),
+        "VTI": ("Vanguard Total Market ETF", "building.columns.fill"),
+        "IWM": ("iShares Russell 2000 ETF",  "dollarsign.circle.fill"),
+        "EFA": ("iShares MSCI EAFE ETF",     "globe.europe.africa.fill"),
+        "GLD": ("SPDR Gold Shares",          "star.fill"),
+        "VNQ": ("Vanguard Real Estate ETF",  "house.fill"),
+        "XLF": ("Financial Select SPDR",     "banknote.fill"),
+        "XLE": ("Energy Select SPDR",        "flame.fill"),
+        "AGG": ("iShares Core Bond ETF",     "shield.fill")
+    ]
+
+    // MARK: – Crypto
+
+    private let cryptoSymbols = [
+        "BTC-USD", "ETH-USD", "SOL-USD", "BNB-USD", "XRP-USD",
+        "ADA-USD", "DOGE-USD", "AVAX-USD", "TON11419-USD", "LINK-USD"
+    ]
+
+    private let cryptoMeta: [String: (name: String, icon: String)] = [
+        "BTC-USD":     ("Bitcoin",   "bitcoinsign.circle.fill"),
+        "ETH-USD":     ("Ethereum",  "circle.hexagongrid.fill"),
+        "SOL-USD":     ("Solana",    "rays"),
+        "BNB-USD":     ("BNB",       "cube.fill"),
+        "XRP-USD":     ("XRP",       "drop.fill"),
+        "ADA-USD":     ("Cardano",   "hexagon.fill"),
+        "DOGE-USD":    ("Dogecoin",  "pawprint.fill"),
+        "AVAX-USD":    ("Avalanche", "triangle.fill"),
+        "TON11419-USD":("Toncoin",   "diamond.fill"),
+        "LINK-USD":    ("Chainlink", "link.circle.fill")
     ]
 
     // MARK: – Public API
@@ -65,14 +91,16 @@ final class DashboardViewModel: ObservableObject {
         switch selectedSegment {
         case .stocks: loadStocks()
         case .funds:  loadFunds()
+        case .crypto: loadCrypto()
         }
     }
 
     func selectSegment(_ segment: MarketSegment) {
         selectedSegment = segment
         switch segment {
-        case .stocks where stockAssets.isEmpty: loadStocks()
-        case .funds  where fundAssets.isEmpty:  loadFunds()
+        case .stocks where stockAssets.isEmpty:  loadStocks()
+        case .funds  where fundAssets.isEmpty:   loadFunds()
+        case .crypto where cryptoAssets.isEmpty: loadCrypto()
         default: break
         }
     }
@@ -84,7 +112,7 @@ final class DashboardViewModel: ObservableObject {
             guard let self else { return }
             switch result {
             case .success(let assets): self.stockAssets = assets
-            case .failure(let error): self.errorMessage = error.localizedDescription
+            case .failure(let error):  self.errorMessage = error.localizedDescription
             }
         }
     }
@@ -94,7 +122,17 @@ final class DashboardViewModel: ObservableObject {
             guard let self else { return }
             switch result {
             case .success(let assets): self.fundAssets = assets
-            case .failure(let error): self.errorMessage = error.localizedDescription
+            case .failure(let error):  self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func loadCrypto() {
+        load(symbols: cryptoSymbols, meta: cryptoMeta) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let assets): self.cryptoAssets = assets
+            case .failure(let error):  self.errorMessage = error.localizedDescription
             }
         }
     }

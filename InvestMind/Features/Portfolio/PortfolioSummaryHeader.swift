@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PortfolioSummaryHeader: View {
     let summary: PortfolioSummary
+    var currencySymbol: String = "$"
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.sm) {
@@ -17,11 +18,11 @@ struct PortfolioSummaryHeader: View {
                 .font(AppTypography.caption())
                 .foregroundStyle(AppColors.textSecondary)
 
-            Text(String(format: "$%.0f", summary.totalValue))
+            Text(String(format: "%@%.0f", currencySymbol, summary.totalValue))
                 .font(AppTypography.largeTitle(weight: .bold))
                 .foregroundStyle(AppColors.textPrimary)
 
-            Text("Инвестировано: \(Int(summary.invested))$")
+            Text("Вложено: \(currencySymbol)\(Int(summary.invested))")
                 .font(AppTypography.caption())
                 .foregroundStyle(AppColors.textSecondary)
             
