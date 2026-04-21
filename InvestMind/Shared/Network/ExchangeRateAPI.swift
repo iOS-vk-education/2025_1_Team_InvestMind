@@ -2,51 +2,70 @@
 //  ExchangeRateAPI.swift
 //  InvestMind
 //
-// Использует бесплатный API frankfurter.app (без ключа).
-// Возвращает курс 1 USD → другие валюты.
+// Курсы валют через Yahoo Finance (тот же ChartAPI что используется для акций).
+// Тикеры формата USDXXX=X — курс 1 USD в целевой валюте.
 //
 
 import Foundation
-
-private struct FrankfurterResponse: Codable {
-    let rates: [String: Double]
-}
 
 final class ExchangeRateAPI {
     static let shared = ExchangeRateAPI()
     private init() {}
 
-    private let supported = AppCurrency.allCases
-        .filter { $0 != .usd }
-        .map(\.rawValue)
-        .joined(separator: ",")
+    private let pairs: [String: String] = [
+        "EUR": "USDEUR=X",
+        "RUB": "USDRUB=X",
+        "CNY": "USDCNY=X",
+        "GBP": "USDGBP=X"
+    ]
 
-    // Актуальные курсы USD → остальные валюты.
+    // Актуальные курсы USD → другие валюты.
     func fetchCurrentRates(completion: @escaping ([String: Double]) -> Void) {
-        fetch(dateString: "latest", completion: completion)
+        let symbols = Array(pairs.values)
+        ChartAPI.shared.getQuotes(symbols: symbols) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let quotes):
+                var rates: [String: Double] = [:]
+                for (currency, ticker) in self.pairs {
+                    if let quote = quotes[ticker], quote.c > 0 {
+                        rates[currency] = quote.c
+                    }
+                }
+                completion(rates)
+            case .failure:
+                completion([:])
+            }
+        }
     }
 
-    // Исторические курсы на конкретную дату (для расчёта вложений по курсу на момент покупки).
+    // Исторический курс на конкретную дату — используем тот же дневной чарт Yahoo.
     func fetchRates(for date: Date, completion: @escaping ([String: Double]) -> Void) {
+        let group = DispatchGroup()
+        var rates: [String: Double] = [:]
+        let lock = DispatchQueue(label: "ExchangeRateAPI.lock")
+
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
-        fetch(dateString: formatter.string(from: date), completion: completion)
-    }
+        let dateStr = formatter.string(from: date)
 
-    private func fetch(dateString: String, completion: @escaping ([String: Double]) -> Void) {
-        guard let url = URL(string: "https://api.frankfurter.app/\(dateString)?from=USD&to=\(supported)") else {
-            completion([:])
-            return
-        }
-        URLSession.shared.dataTask(with: url) { data, _, _ in
-            let rates: [String: Double]
-            if let data,
-               let response = try? JSONDecoder().decode(FrankfurterResponse.self, from: data) {
-                rates = response.rates
-            } else {
-                rates = [:]
+        // Считаем сколько дней назад была эта дата, чтобы передать range в Yahoo
+        let daysSince = max(1, Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 1)
+
+        for (currency, ticker) in pairs {
+            group.enter()
+            ChartAPI.shared.fetchHistory(symbol: ticker, days: daysSince + 5) { result in
+                lock.sync {
+                    if case .success(let prices) = result, let price = prices.last, price > 0 {
+                        rates[currency] = price
+                    }
+                }
+                group.leave()
             }
-            DispatchQueue.main.async { completion(rates) }
-        }.resume()
+        }
+
+        group.notify(queue: .main) {
+            completion(rates)
+        }
     }
 }
