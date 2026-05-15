@@ -45,8 +45,11 @@ struct StockDetailView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
-            HStack {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
+
+            // MARK: Top row
+            HStack(alignment: .center) {
+
                 TickerLogoView(
                     ticker: viewModel.asset.ticker,
                     fallbackSystemImage: viewModel.asset.icon,
@@ -54,37 +57,92 @@ struct StockDetailView: View {
                     cornerRadius: 12,
                     paddingInside: 6
                 )
-                
-                VStack(alignment: .leading, spacing: 4) {
+
+                VStack(alignment: .leading, spacing: 2) {
                     Text(viewModel.asset.name)
                         .font(AppTypography.headline(weight: .bold))
                         .foregroundStyle(AppColors.textPrimary)
+
                     Text(viewModel.asset.ticker)
                         .font(AppTypography.caption())
                         .foregroundStyle(AppColors.textSecondary)
                 }
+
                 Spacer()
+
                 if let percent = viewModel.dayChangePercent {
-                    AssetChangeBadge(
-                        trend: percent >= 0
+                    //HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    //    Text("За сегодня").font(AppTypography.caption()).foregroundStyle(AppColors.textSecondary)
+
+                        //if let percent = viewModel.dayChangePercent {
+                            //Text(String(format: "%+.2f%%", percent)).font(AppTypography.caption(weight: .medium))
+                                //.foregroundStyle(percent >= 0 ? AppColors.accentSecondary: AppColors.danger)
+                        //}
+                        //}
+                    VStack( spacing: 8) {
+                        Text("За сегодня").font(AppTypography.caption()).foregroundStyle(AppColors.textSecondary)
+                        AssetChangeBadge(
+                            trend: percent >= 0
                             ? .up(percent)
                             : .down(abs(percent))
-                    )
+                        )
+                    }
                 }
             }
 
-            if let price = viewModel.price {
-                Text(String(format: "$%.2f", price))
-                    .font(AppTypography.largeTitle(weight: .bold))
-                    .foregroundStyle(AppColors.textPrimary)
-            } else {
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            // MARK: Price block
+            VStack(alignment: .leading, spacing: 6) {
+
+                if let price = viewModel.price {
+                    Text(String(format: "$%.2f", price))
+                        .font(AppTypography.largeTitle(weight: .bold))
+                        .foregroundStyle(AppColors.textPrimary)
+                    //HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    //    Text("За сегодня").font(AppTypography.caption()).foregroundStyle(AppColors.textSecondary)
+
+                        //if let percent = viewModel.dayChangePercent {
+                            //Text(String(format: "%+.2f%%", percent)).font(AppTypography.caption(weight: .medium))
+                                //.foregroundStyle(percent >= 0 ? AppColors.accentSecondary: AppColors.danger)
+                        //}
+                        //}
+                } else {
+                    ProgressView()
+                }
+                
             }
+        }
+    }
+    
+    private var periodStatTitle: String {
+        switch viewModel.selectedPeriod {
+        case .month1: return "1 месяц"
+        case .month3: return "3 месяца"
+        case .month6: return "6 месяцев"
+        case .year: return "1 год"
+        }
+    }
+
+    private var periodChangeValue: Double? {
+        switch viewModel.selectedPeriod {
+        case .month1: return viewModel.month1ChangeValue
+        case .month3: return viewModel.month3ChangeValue
+        case .month6: return viewModel.month6ChangeValue
+        case .year: return viewModel.yearChangeValue
+        }
+    }
+
+    private var periodChangePercent: Double? {
+        switch viewModel.selectedPeriod {
+        case .month1: return viewModel.month1ChangePercent
+        case .month3: return viewModel.month3ChangePercent
+        case .month6: return viewModel.month6ChangePercent
+        case .year: return viewModel.yearChangePercent
         }
     }
 
     private var performanceCard: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
+        //VStack(alignment: .leading, spacing: AppSpacing.md)
+        VStack(alignment: .leading, spacing: 12){
             Text("Динамика")
                 .font(AppTypography.headline(weight: .bold))
                 .foregroundStyle(AppColors.textPrimary)
@@ -111,31 +169,37 @@ struct StockDetailView: View {
                 viewModel.loadChartPrices()
             }
 
+            // Period stats
             HStack(spacing: AppSpacing.md) {
-                StatChangeBadge(
-                    title: "1D",
-                    value: viewModel.dayChangeValue,
-                    percent: viewModel.dayChangePercent
-                )
 
                 StatChangeBadge(
-                    title: "1Y",
-                    value: viewModel.yearChangeValue,
-                    percent: viewModel.yearChangePercent
+                    title: periodStatTitle,
+                    value: periodChangeValue,
+                    percent: periodChangePercent
                 )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                StatChangeBadge_icon(
+                    title: "Аналитика",
+                    //recommendation: viewModel.recommendation,
+                    recommendation: viewModel.recommendation,
+                    growthPotential: viewModel.growthPotential
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .frame(height: 100) //
+            
         }
     }
 
 
+    
     private var actions: some View {
-        VStack(spacing: AppSpacing.md) {
+        HStack(spacing: AppSpacing.md) {
 
             // Купить
             Button(action: { isBuyPresented = true }) {
                 HStack {
-                    Image(systemName: "cart.fill.badge.plus")
-                        .font(.headline)
                     Text("Купить")
                         .font(AppTypography.headline(weight: .semibold))
                 }
@@ -149,8 +213,6 @@ struct StockDetailView: View {
             // Продать
             Button(action: { isSellPresented = true }) {
                 HStack {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.headline)
                     Text("Продать")
                         .font(AppTypography.headline(weight: .semibold))
                 }

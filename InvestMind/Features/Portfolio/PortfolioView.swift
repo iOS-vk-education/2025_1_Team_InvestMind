@@ -187,7 +187,7 @@ struct PortfolioView: View {
                             )
                         )
                         .foregroundStyle(item.profit >= 0 ? AppColors.accentSecondary : AppColors.danger)
-                        .font(AppTypography.caption(weight: .bold))
+                        .font(AppTypography.caption(weight: .semibold))
                     }
                 }
                 .padding()

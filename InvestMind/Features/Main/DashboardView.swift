@@ -60,7 +60,7 @@ struct DashboardView: View {
                     .showCoachMark(
                         order: 0,
                         title: "Рынок акций",
-                        description: "На этой вкладке ты смотришь рынок, выбираешь интересные акции и открываешь карточки инструментов.",
+                        description: "На этой вкладке ты смотришь рынок, выбираешь интересные акции и открываешь  карточки инструментов.",
                         highlightViewCornerRadius: 18,
                         coachMarkBackGroundColor: AppColors.backgroundSecondary
                     )
@@ -124,6 +124,21 @@ struct DashboardView: View {
             }
         }
         .toolbar {
+            
+ //           ToolbarItem(placement: .principal) {
+//                Text("Рынок")
+  //                  .font(AppTypography.largeTitle(weight: .bold))
+    //                .foregroundStyle(AppColors.textPrimary)
+      //              .frame(maxWidth: .infinity, alignment: .leading)
+        //            .showCoachMark(
+          //              order: 0,
+            //            title: "Рынок акций",
+              //          description: "На этой вкладке ты смотришь рынок, выбираешь интересные акции и открываешь  карточки инструментов.",
+                //        highlightViewCornerRadius: 18,
+                 //       coachMarkBackGroundColor: AppColors.backgroundSecondary
+                   // )
+           // }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     isSearchPresented = true

@@ -27,6 +27,19 @@ enum AppTheme: String, CaseIterable, Identifiable {
 }
 
 enum AppColors {
+    //Цвета
+    // смена акцента на зеленый
+    //static let accentPrimary = Color(red: 0.40, green: 0.85, blue: 0.40)
+    static let accentPrimary = Color.green.opacity(0.85)
+    
+    //static let accentSecondary = Color(red: 0.45, green: 0.85, blue: 0.70)
+    static let accentSecondary = accentPrimary
+    // графиков
+    //static let incrValue = Color(red: 0.40, green: 0.90, blue: 0.40)
+    //static let decrValue = Color(red: 0.90, green: 0.40, blue: 0.40)
+    
+    static let danger = Color(red: 1.00, green: 0.3, blue: 0.30)
+    
 
     static let backgroundPrimary = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark
@@ -36,20 +49,23 @@ enum AppColors {
 
     static let backgroundSecondary = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark
-            ? UIColor(red: 0.09, green: 0.11, blue: 0.17, alpha: 1)
+            //? UIColor(red: 0.09, green: 0.11, blue: 0.17, alpha: 1)
+              ? UIColor(red: 1, green: 1, blue: 1, alpha: 0.08)
             : UIColor.secondarySystemBackground
     })
     
     static let authOverlay = Color(red: 0.04, green: 0.05, blue: 0.09).opacity(0.75)
 
-    static let accentPrimary = Color(red: 0.36, green: 0.69, blue: 0.98)
-    static let accentSecondary = Color(red: 0.45, green: 0.86, blue: 0.70)
+    //static let accentPrimary = Color(red: 0.36, green: 0.69, blue: 0.98)  //Замана
+    //static let accentSecondary = Color(red: 0.45, green: 0.86, blue: 0.70)
 
     static let buttonPrimary = Color("ButtonPrimaryColor")
     static let buttonSecondary = Color("ButtonSecondaryColor")
 
     static let warning = Color(red: 1.00, green: 0.66, blue: 0.23)
-    static let danger = Color(red: 1.00, green: 0.36, blue: 0.36)
+    //static let danger = Color(red: 1.00, green: 0.36, blue: 0.36)
+    
+
     
     static let authTextSecondary = Color.white.opacity(0.7)
 

@@ -101,6 +101,22 @@ struct PortfolioListView: View {
         }
         .background(AppColors.backgroundPrimary.ignoresSafeArea())
         .toolbar {
+            
+//            ToolbarItem(placement: .principal) {
+  //              Text("Мои портфели")
+    //                .font(AppTypography.largeTitle(weight: .bold))
+      //              .foregroundStyle(AppColors.textPrimary)
+        //            .padding(.bottom, AppSpacing.md)
+          //          .showCoachMark(
+            //            order: 0,
+              //          title: "Портфели",
+                //        description: "Здесь собраны твои портфели с общей стоимостью, вложенной суммой и текущим результатом.",
+                  //      highlightViewCornerRadius: 18,
+                    //    coachMarkBackGroundColor: AppColors.backgroundSecondary
+                   // )
+            //}
+            
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: onAddPortfolio) {
                     Image(systemName: "plus")
