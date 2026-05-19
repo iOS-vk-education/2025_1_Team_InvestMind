@@ -37,38 +37,12 @@ private struct ProfileGuideOverlay: View {
 
             VStack(alignment: .leading, spacing: 0) {
                 Color.clear
-                    .frame(width: contentWidth, height: 132)
+                    .frame(width: contentWidth, height: 336)
                     .showCoachMark(
                         order: 0,
-                        title: "Секция профиля",
-                        description: "Здесь показаны данные профиля: аватар, имя команды и почта текущего аккаунта.",
+                        title: "Настройки",
+                        description: "Здесь можно посмотреть почту аккаунта, выбрать тему приложения, выйти из профиля или удалить учётную запись.",
                         highlightViewCornerRadius: 24,
-                        coachMarkBackGroundColor: AppColors.backgroundSecondary
-                    )
-
-                Spacer()
-                    .frame(height: 2)
-
-                Color.clear
-                    .frame(width: contentWidth, height: 118)
-                    .showCoachMark(
-                        order: 1,
-                        title: "Смена темы",
-                        description: "Здесь переключается тема приложения: системная, светлая или тёмная.",
-                        highlightViewCornerRadius: 18,
-                        coachMarkBackGroundColor: AppColors.backgroundSecondary
-                    )
-
-                Spacer()
-                    .frame(height: 26)
-
-                Color.clear
-                    .frame(width: contentWidth, height: 52)
-                    .showCoachMark(
-                        order: 2,
-                        title: "Кнопка выхода",
-                        description: "Если нужно выйти из текущего аккаунта, используй эту кнопку.",
-                        highlightViewCornerRadius: 14,
                         coachMarkBackGroundColor: AppColors.backgroundSecondary
                     )
 

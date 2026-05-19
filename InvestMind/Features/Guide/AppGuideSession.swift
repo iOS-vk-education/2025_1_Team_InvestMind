@@ -9,7 +9,15 @@ enum AppGuideStage {
 
 @MainActor
 final class AppGuideSession: ObservableObject {
-    @Published var currentStage: AppGuideStage = .market
+    private let defaults: UserDefaults
+    private let hasCompletedMainGuideKey = "hasCompletedMainGuide"
+
+    @Published var currentStage: AppGuideStage
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        currentStage = defaults.bool(forKey: hasCompletedMainGuideKey) ? .completed : .market
+    }
 
     var hasPresentedMainGuide: Bool {
         currentStage == .completed
@@ -30,5 +38,6 @@ final class AppGuideSession: ObservableObject {
 
     func complete() {
         currentStage = .completed
+        defaults.set(true, forKey: hasCompletedMainGuideKey)
     }
 }
