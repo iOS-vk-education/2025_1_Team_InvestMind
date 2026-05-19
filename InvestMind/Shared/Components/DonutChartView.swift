@@ -22,9 +22,15 @@ struct DonutChartView: View {
                 )
                 .foregroundStyle(item.color)
                 .annotation(position: .overlay) {
-                    Text(item.name)
-                        .font(.caption2)
-                        .foregroundStyle(.white)
+                    if item.showsLabel {
+                        Text(item.name)
+                            .font(.caption2)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(width: 48)
+                            .clipped()
+                    }
                 }
             }
         }
@@ -44,6 +50,7 @@ struct DonutItem: Identifiable {
     let value: Double
     let color: Color
     let rank: Int
+    let showsLabel: Bool
 }
 
 // MARK: - Data processing
@@ -67,9 +74,10 @@ extension Array where Element == PortfolioAssetChartData {
             }
         }
         
-        // добавляем Other
+        let otherName = "Другое"
+
         if otherValue > 0 {
-            mainItems.append(("Other", otherValue))
+            mainItems.append((otherName, otherValue))
         }
         
         // сортировка по убыванию
@@ -77,7 +85,7 @@ extension Array where Element == PortfolioAssetChartData {
         
         return sorted.enumerated().map { index, item in
             
-            let color: Color = (item.name == "Other")
+            let color: Color = (item.name == otherName)
                 ? PortfolioChartColors.otherColor
                 : PortfolioChartColors.colorByRank(index)
             
@@ -85,7 +93,8 @@ extension Array where Element == PortfolioAssetChartData {
                 name: item.name,
                 value: item.value,
                 color: color,
-                rank: index
+                rank: index,
+                showsLabel: item.value / total >= 0.08
             )
         }
     }

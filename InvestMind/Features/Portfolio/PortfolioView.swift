@@ -26,7 +26,7 @@ struct PortfolioView: View {
                             PortfolioChartsCarousel(
                                 assets: portfolio.assets.map {
                                     PortfolioAssetChartData(
-                                        name: $0.asset.ticker,
+                                        name: $0.asset.name,
                                         kind: .stock,
                                         quantity: $0.amount,
                                         price: $0.asset.price

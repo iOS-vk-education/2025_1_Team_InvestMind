@@ -4,6 +4,7 @@ import SwiftUI
 import Charts
 
 struct StockDetailView: View {
+    @EnvironmentObject var portfolioStore: PortfolioStore
     @StateObject private var viewModel: StockDetailViewModel
 
     @State private var isBuyPresented = false
@@ -42,6 +43,12 @@ struct StockDetailView: View {
 
     private var currentPrice: Double {
         viewModel.price ?? viewModel.asset.price
+    }
+
+    private var hasSellablePosition: Bool {
+        portfolioStore.allPortfoliosMeta().contains {
+            portfolioStore.hasPosition(ticker: viewModel.asset.ticker, in: $0.id)
+        }
     }
 
     private var header: some View {
@@ -211,20 +218,23 @@ struct StockDetailView: View {
             }
 
             // Продать
-            Button(action: { isSellPresented = true }) {
+            Button(action: {
+                guard hasSellablePosition else { return }
+                isSellPresented = true
+            }) {
                 HStack {
                     Text("Продать")
                         .font(AppTypography.headline(weight: .semibold))
                 }
-                .foregroundStyle(AppColors.danger)
+                .foregroundStyle(hasSellablePosition ? AppColors.danger : AppColors.textTertiary)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(AppColors.danger.opacity(0.12))
+                .background(hasSellablePosition ? AppColors.danger.opacity(0.12) : AppColors.backgroundSecondary)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
+            .disabled(!hasSellablePosition)
         }
     }
 
 }
-
 
