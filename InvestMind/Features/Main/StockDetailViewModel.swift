@@ -81,6 +81,10 @@ final class StockDetailViewModel: ObservableObject {
     @Published var selectedPeriod: ChartPeriod = .year
     @Published var chartPrices: [Double] = []
 
+    /// Годовой ряд дневных цен только для технического анализа.
+    /// Не зависит от выбранного на графике периода, поэтому прогноз стабилен.
+    private var analysisPrices: [Double] = []
+
     init(asset: Asset) {
         self.asset = asset
     }
@@ -95,11 +99,7 @@ final class StockDetailViewModel: ObservableObject {
         loadMonth6Summary()
         loadYearSummary()
         loadChartPrices()
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.analyzeStockPerformance()
-        }
-        
+
         isLoading = false
     }
 
@@ -162,6 +162,10 @@ final class StockDetailViewModel: ObservableObject {
                     let diff = last - first
                     self.yearChangeValue = diff
                     self.yearChangePercent = diff / first * 100
+
+                    // Полный годовой ряд — основа технического анализа.
+                    self.analysisPrices = prices
+                    self.analyzeStockPerformance()
 
                 case .failure(let error):
                     self.errorMessage = error.localizedDescription
@@ -232,80 +236,18 @@ final class StockDetailViewModel: ObservableObject {
             }
         }
     }
-// Функция для оценки перспектив
+    // MARK: - Технический анализ
+
+    /// Считает рекомендацию по году дневных цен через TechnicalAnalysis.
+    /// Прогноз стабилен и не зависит от выбранного на графике периода.
     func analyzeStockPerformance() {
-        // Собираем данные за периоды
-        let periods: [(change: Double?, percent: Double?, name: String)] = [
-            (dayChangeValue, dayChangePercent, "1M"),
-            (month3ChangeValue, month3ChangePercent, "3M"),
-            (month6ChangeValue, month6ChangePercent, "6M"),
-            (yearChangeValue, yearChangePercent, "1Y")
-        ]
-        
-        var score = 0
-        var positivePeriods = 0
-        var totalGrowthPercent = 0.0
-        
-        for period in periods {
-            guard let percent = period.percent else { continue }
-            
-            totalGrowthPercent += percent
-            
-            if percent > 0 {
-                positivePeriods += 1
-                
-                if percent > 20 {
-                    score += 3 // сильный рост
-                } else if percent > 10 {
-                    score += 2 // хороший рост
-                } else if percent > 0 {
-                    score += 1 // слабый рост
-                }
-            } else if percent < 0 {
-                if percent < -20 {
-                    score -= 3 // сильное падение
-                } else if percent < -10 {
-                    score -= 2 // хорошее падение
-                } else if percent < 0 {
-                    score -= 1 // слабое падение
-                }
-            }
+        guard let result = TechnicalAnalysis.analyze(prices: analysisPrices) else {
+            recommendation = nil
+            growthPotential = nil
+            return
         }
-        
-        // Дополнительный бонус за последовательный рост
-        if positivePeriods >= 3 {
-            score += 2
-        }
-        
-        // Определяем рекомендацию на основе score
-        switch score {
-        case ...(-5):
-            recommendation = .strongSell
-            growthPotential = -15.0
-        case -4...(-2):
-            recommendation = .sell
-            growthPotential = -8.0
-        case -1...1:
-            recommendation = .hold
-            growthPotential = 5.0
-        case 2...4:
-            recommendation = .buy
-            growthPotential = 15.0
-        default:
-            recommendation = .strongBuy
-            growthPotential = 25.0
-        }
-        
-        // Корректируем потенциал роста на основе последнего периода
-        if let lastPeriodPercent = periods.last?.percent {
-            if lastPeriodPercent > 0 {
-                growthPotential = (growthPotential ?? 0) + lastPeriodPercent * 0.3
-            } else {
-                growthPotential = (growthPotential ?? 0) + lastPeriodPercent * 0.5
-            }
-        }
-        
-        growthPotential = max(-30, min(50, growthPotential ?? 0))
+        recommendation = result.recommendation
+        growthPotential = result.growthPotential
     }
 
     

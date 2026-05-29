@@ -53,6 +53,8 @@ struct StatChangeBadge_icon: View {
     let title: String
     let recommendation: Recommendation?
     let growthPotential: Double?
+    /// true — данные ещё грузятся; false — загрузка завершена.
+    var isLoading: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -76,7 +78,6 @@ struct StatChangeBadge_icon: View {
 
                 HStack(spacing: AppSpacing.xs) {
                     Image(systemName: recommendation.icon)
-                        .font(.caption)
                         .font(AppTypography.headline(weight: .medium))
                         .foregroundStyle(recommendation.color)
 
@@ -87,8 +88,8 @@ struct StatChangeBadge_icon: View {
 
                 HStack(spacing: 2) {
                     Image(systemName: (growthPotential ?? 0) >= 0
-                          ? "trending.up"
-                          : "trending.down")
+                          ? "chart.line.uptrend.xyaxis"
+                          : "chart.line.downtrend.xyaxis")
                         .font(.caption2)
                         .foregroundStyle((growthPotential ?? 0) >= 0 ? .green : .red)
 
@@ -97,14 +98,23 @@ struct StatChangeBadge_icon: View {
                         .foregroundStyle(AppColors.textSecondary)
                 }
             }
+        } else if isLoading {
+            HStack(spacing: 6) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Загрузка…")
+                    .font(AppTypography.caption())
+                    .foregroundStyle(AppColors.textSecondary)
+            }
         } else {
-            Text("Loading")
+            Text("Нет данных")
+                .font(AppTypography.headline(weight: .medium))
                 .foregroundStyle(AppColors.textSecondary)
         }
     }
 
     private var growthText: String {
-        guard let growthPotential else { return "Потенциал: --" }
+        guard let growthPotential else { return "Потенциал: —" }
         return String(format: "Прогноз: %+.1f%%", growthPotential)
     }
 }

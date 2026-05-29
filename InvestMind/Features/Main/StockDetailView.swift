@@ -188,9 +188,9 @@ struct StockDetailView: View {
 
                 StatChangeBadge_icon(
                     title: "Аналитика",
-                    //recommendation: viewModel.recommendation,
                     recommendation: viewModel.recommendation,
-                    growthPotential: viewModel.growthPotential
+                    growthPotential: viewModel.growthPotential,
+                    isLoading: viewModel.isLoading
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
