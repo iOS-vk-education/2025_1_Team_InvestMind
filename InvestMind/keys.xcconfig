@@ -1,0 +1,13 @@
+//
+//  keys.xcconfig
+//  InvestMind
+//
+//  Created by Булат Хусаинов on 23.12.2025.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+
+//FINNHUB_API_KEY =  d54rldhr01qojbih2he0d54rldhr01qojbih2heg
+FINNHUB_API_KEY =  q
+
