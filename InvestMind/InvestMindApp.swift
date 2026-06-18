@@ -12,6 +12,7 @@ import FirebaseCore
 struct InvestMindApp: App {
     @StateObject private var authService = AuthService()
     @StateObject private var portfolioStore = PortfolioStore()
+    @StateObject private var guideSession = AppGuideSession()
 
     @AppStorage("selectedTheme") private var selectedThemeRawValue = AppTheme.system.rawValue
 
@@ -28,8 +29,21 @@ struct InvestMindApp: App {
             ContentView()
                 .environmentObject(authService)
                 .environmentObject(portfolioStore)
+                .environmentObject(guideSession)
                 .preferredColorScheme(selectedTheme.colorScheme)
+                .onAppear {
+                    // Если пользователь уже залогинен при запуске — сразу подключаем Firestore
+                    if let uid = authService.currentUser?.uid {
+                        portfolioStore.setup(userId: uid)
+                    }
+                }
+                .onChange(of: authService.isAuthenticated) { isAuth in
+                    if isAuth, let uid = authService.currentUser?.uid {
+                        portfolioStore.setup(userId: uid)
+                    } else {
+                        portfolioStore.tearDown()
+                    }
+                }
         }
     }
 }
-

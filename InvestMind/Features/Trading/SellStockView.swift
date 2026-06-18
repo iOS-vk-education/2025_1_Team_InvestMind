@@ -11,11 +11,17 @@ struct SellStockView: View {
     @State private var amountText: String = ""
 
     private var portfolios: [(id: UUID, name: String)] {
-        portfolioStore.allPortfoliosMeta()
+        portfolioStore.allPortfoliosMeta().filter {
+            portfolioStore.hasPosition(ticker: asset.ticker, in: $0.id)
+        }
     }
 
     private var selectedIdResolved: UUID? {
-        selectedPortfolioId ?? portfolios.first?.id
+        if let selectedPortfolioId,
+           portfolios.contains(where: { $0.id == selectedPortfolioId }) {
+            return selectedPortfolioId
+        }
+        return portfolios.first?.id
     }
 
     private var availableAmount: Double {
@@ -39,7 +45,7 @@ struct SellStockView: View {
 
     private var portfolioSelection: Binding<UUID?> {
         Binding<UUID?>(
-            get: { selectedPortfolioId ?? portfolios.first?.id },
+            get: { selectedIdResolved },
             set: {
                 selectedPortfolioId = $0
                 amountText = ""
@@ -51,43 +57,50 @@ struct SellStockView: View {
         NavigationStack {
             Form {
                 Section {
-                    Picker("Портфель", selection: portfolioSelection) {
-                        ForEach(portfolios, id: \.id) { item in
-                            Text(item.name).tag(Optional(item.id))
+                    if portfolios.isEmpty {
+                        Text("Этой акции нет в ваших портфелях")
+                            .foregroundStyle(AppColors.textSecondary)
+                    } else {
+                        Picker("Портфель", selection: portfolioSelection) {
+                            ForEach(portfolios, id: \.id) { item in
+                                Text(item.name).tag(Optional(item.id))
+                            }
                         }
                     }
                 }
 
-                Section {
-                    HStack {
-                        Text("Доступно")
-                        Spacer()
-                        Text(String(format: "%.4g", availableAmount))
-                    }
-
-                    TextField("Количество", text: $amountText)
-                        .keyboardType(.decimalPad)
-
-                    HStack {
-                        Text("Цена за 1")
-                        Spacer()
-                        Text(String(format: "$%.2f", pricePerShare))
-                    }
-
-                    HStack {
-                        Text("Итого")
-                        Spacer()
-                        if let totalPrice {
-                            Text(String(format: "$%.2f", totalPrice))
-                        } else {
-                            Text("-")
+                if !portfolios.isEmpty {
+                    Section {
+                        HStack {
+                            Text("Доступно")
+                            Spacer()
+                            Text(String(format: "%.4g", availableAmount))
                         }
-                    }
 
-                    if selectedIdResolved != nil && availableAmount <= 0 {
-                        Text("В этом портфеле нет этой акции")
-                            .foregroundStyle(AppColors.textSecondary)
-                            .font(AppTypography.caption())
+                        TextField("Количество", text: $amountText)
+                            .keyboardType(.decimalPad)
+
+                        HStack {
+                            Text("Цена за 1")
+                            Spacer()
+                            Text(String(format: "$%.2f", pricePerShare))
+                        }
+
+                        HStack {
+                            Text("Итого")
+                            Spacer()
+                            if let totalPrice {
+                                Text(String(format: "$%.2f", totalPrice))
+                            } else {
+                                Text("-")
+                            }
+                        }
+
+                        if selectedIdResolved != nil && availableAmount <= 0 {
+                            Text("В этом портфеле нет этой акции")
+                                .foregroundStyle(AppColors.textSecondary)
+                                .font(AppTypography.caption())
+                        }
                     }
                 }
             }

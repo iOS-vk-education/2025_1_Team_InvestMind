@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject var portfolioStore: PortfolioStore
+    @EnvironmentObject private var guideSession: AppGuideSession
 
     @State private var selectedTab = 0
     @State private var dashboardPath = NavigationPath()
@@ -28,6 +29,15 @@ struct MainTabView: View {
                     }
                 }
             }
+            .appMainGuide(
+                isEnabled: guideSession.currentStage == .market,
+                doneButtonText: "К портфелям",
+                onFinished: {
+                    guard guideSession.currentStage == .market else { return }
+                    guideSession.advance()
+                    selectedTab = 1
+                }
+            )
             .tabItem {
                 Label("Рынок", systemImage: "house.fill")
             }
@@ -70,6 +80,15 @@ struct MainTabView: View {
             .sheet(isPresented: $isAddPortfolioPresented) {
                 AddPortfolioView()
             }
+            .appMainGuide(
+                isEnabled: guideSession.currentStage == .portfolios,
+                doneButtonText: "К профилю",
+                onFinished: {
+                    guard guideSession.currentStage == .portfolios else { return }
+                    guideSession.advance()
+                    selectedTab = 2
+                }
+            )
             .tabItem {
                 Label("Портфели", systemImage: "briefcase.fill")
             }
@@ -79,6 +98,13 @@ struct MainTabView: View {
             NavigationStack {
                 ProfileView()
             }
+            .appMainGuide(
+                isEnabled: guideSession.currentStage == .profile,
+                doneButtonText: "Готово",
+                onFinished: {
+                    guideSession.complete()
+                }
+            )
             .tabItem {
                 Label("Профиль", systemImage: "person.fill")
             }
@@ -86,5 +112,24 @@ struct MainTabView: View {
         }
         .tint(AppColors.accentPrimary)
         .background(AppColors.backgroundPrimary)
+        .onAppear {
+            syncSelectedTabWithGuide()
+        }
+        .onChange(of: guideSession.currentStage) { _, _ in
+            syncSelectedTabWithGuide()
+        }
+    }
+
+    private func syncSelectedTabWithGuide() {
+        switch guideSession.currentStage {
+        case .market:
+            selectedTab = 0
+        case .portfolios:
+            selectedTab = 1
+        case .profile:
+            selectedTab = 2
+        case .completed:
+            break
+        }
     }
 }
